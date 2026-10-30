@@ -54,7 +54,10 @@ function updateUI() {
         card.innerHTML = `
             <button class="delete-goal" onclick="deleteGoal(${goal.id})">×</button>
             <div class="goal-title">${goal.title}</div>
-            <div class="goal-sums">${formatMoney(goal.saved)} из ${formatMoney(goal.target)} <span style="float:right; color:var(--purple-dark); font-weight:600;">${Math.round(percent)}%</span></div>
+            <div class="goal-sums">
+                <span>${formatMoney(goal.saved)} из ${formatMoney(goal.target)}</span>
+                <span class="goal-percent">${Math.round(percent)}%</span>
+            </div>
             <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
             <button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>
         `;
@@ -85,9 +88,6 @@ function openModal(title, showText, showNumber, action) {
     inputNumber.classList.toggle('hidden', !showNumber);
     inputText.value = '';
     inputNumber.value = '';
-    
-    // Убираем лишние нули
-    if (!showNumber) inputNumber.value = '';
     
     currentAction = action;
     modalOverlay.classList.remove('hidden');
@@ -139,9 +139,6 @@ document.getElementById('add-goal-btn').onclick = () => {
         tg.showAlert('Максимум 15 целей!');
         return;
     }
-    // Здесь мы запрашиваем название и сумму, но так как модалка у нас одна, 
-    // сделаем просто по очереди или впишем оба поля.
-    // Для простоты используем нашу модалку с двумя полями.
     openModal('Новая цель', true, true, (text, num) => {
         if (!text) return;
         const newGoal = {
@@ -175,5 +172,20 @@ window.addToGoal = function(id) {
     });
 };
 
-// Запуск
+// Кнопка FAB (плюсик внизу справа)
+document.getElementById('fab-btn').onclick = () => {
+    // Для простоты она вызывает добавление цели
+    document.getElementById('add-goal-btn').click();
+};
+
+// --- Запуск ---
 loadState();
+
+// Логика заставки
+window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    // Ждем 2 секунды и скрываем
+    setTimeout(() => {
+        splash.classList.add('hidden');
+    }, 2000);
+});
