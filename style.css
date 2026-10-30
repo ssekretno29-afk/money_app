@@ -332,3 +332,22 @@ h2 {
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
+
+.btn-outline {
+    width: 100%;
+    background: var(--white);
+    color: var(--purple-dark);
+    border: 1.5px dashed var(--purple-main);
+    padding: 14px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn-outline:active {
+    background: var(--purple-light);
+    color: var(--white);
+}
