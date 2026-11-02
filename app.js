@@ -36,8 +36,12 @@ function saveState() {
 
 // Обновление интерфейса
 function updateUI() {
-    // Расчет остатка
-    const remainder = state.income - state.essentials - state.optional;
+    // Считаем, сколько всего денег уже отложено в цели
+    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
+
+    // Расчет остатка (вычитаем всё, включая то, что ушло в цели)
+    const remainder = state.income - state.essentials - state.optional - totalSavedInGoals;
+    
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-essentials').textContent = formatMoney(state.essentials);
