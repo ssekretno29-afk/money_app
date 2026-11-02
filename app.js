@@ -39,7 +39,7 @@ function updateUI() {
     // Считаем, сколько всего денег уже отложено в цели
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
 
-    // Расчет остатка (вычитаем всё, включая то, что ушло в цели)
+    // Расчет остатка
     const remainder = state.income - state.essentials - state.optional - totalSavedInGoals;
     
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
@@ -52,18 +52,27 @@ function updateUI() {
     
     state.goals.forEach(goal => {
         const percent = goal.target > 0 ? Math.min((goal.saved / goal.target) * 100, 100) : 0;
+        const isCompleted = goal.saved >= goal.target;
         
+        // Если цель достигнута, рисуем надпись, иначе кнопку
+        const actionButton = isCompleted 
+            ? `<div class="goal-completed">Цель достигнута! 🎉</div>`
+            : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
+
         const card = document.createElement('div');
         card.className = 'goal-card';
         card.innerHTML = `
-            <button class="delete-goal" onclick="deleteGoal(${goal.id})">×</button>
+            <div class="goal-actions">
+                <button class="edit-goal" onclick="editGoal(${goal.id})">✏️</button>
+                <button class="delete-goal" onclick="deleteGoal(${goal.id})">×</button>
+            </div>
             <div class="goal-title">${goal.title}</div>
             <div class="goal-sums">
                 <span>${formatMoney(goal.saved)} из ${formatMoney(goal.target)}</span>
                 <span class="goal-percent">${Math.round(percent)}%</span>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
-            <button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>
+            ${actionButton}
         `;
         goalsList.appendChild(card);
     });
@@ -86,12 +95,12 @@ const btnSave = document.getElementById('modal-save');
 
 let currentAction = null;
 
-function openModal(title, showText, showNumber, action) {
+function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '') {
     modalTitle.textContent = title;
     inputText.classList.toggle('hidden', !showText);
     inputNumber.classList.toggle('hidden', !showNumber);
-    inputText.value = '';
-    inputNumber.value = '';
+    inputText.value = initialText;
+    inputNumber.value = initialNumber;
     
     currentAction = action;
     modalOverlay.classList.remove('hidden');
@@ -118,7 +127,7 @@ document.getElementById('edit-income-btn').onclick = () => {
     openModal('Введите доход за месяц', false, true, (text, num) => {
         state.income = num;
         saveState();
-    });
+    }, '', state.income || '');
 };
 
 // Обязательные расходы
@@ -129,7 +138,7 @@ document.getElementById('add-essential-btn').onclick = () => {
     });
 };
 
-// Необязательные расходы (вычитание)
+// Необязательные расходы
 document.getElementById('add-optional-btn').onclick = () => {
     openModal('Сколько потратили?', false, true, (text, num) => {
         state.optional += num;
@@ -156,7 +165,7 @@ document.getElementById('add-goal-btn').onclick = () => {
     });
 };
 
-// Глобальные функции для кнопок внутри карточек
+// Глобальные функции
 window.deleteGoal = function(id) {
     if (confirm('Удалить эту цель?')) {
         state.goals = state.goals.filter(g => g.id !== id);
@@ -164,16 +173,36 @@ window.deleteGoal = function(id) {
     }
 };
 
+window.editGoal = function(id) {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal) return;
+    
+    openModal('Редактировать цель', true, true, (text, num) => {
+        if (!text) return;
+        goal.title = text;
+        goal.target = num;
+        saveState();
+    }, goal.title, goal.target);
+};
+
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
     
+    const remaining = goal.target - goal.saved;
+    
     openModal('Сколько отложить на цель?', false, true, (text, num) => {
         if (num > 0) {
-            goal.saved += num;
+            // Если введенная сумма больше, чем осталось до цели, берем только остаток
+            if (num > remaining) {
+                goal.saved += remaining;
+                tg.showAlert(`Вы ввели больше, чем нужно. Отложено только ${formatMoney(remaining)}.`);
+            } else {
+                goal.saved += num;
+            }
             saveState();
         }
-    });
+    }, '', remaining > 0 ? remaining : '');
 };
 
 // --- Запуск ---
@@ -182,7 +211,6 @@ loadState();
 // Логика заставки
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
-    // Ждем 2 секунды и скрываем
     setTimeout(() => {
         splash.classList.add('hidden');
     }, 2000);
