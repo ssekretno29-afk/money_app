@@ -351,3 +351,52 @@ h2 {
     background: var(--purple-light);
     color: var(--white);
 }
+
+/* Контейнер для кнопок управления целью (карандаш и крестик) */
+.goal-actions {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.delete-goal {
+    position: static; /* Сбрасываем абсолютное позиционирование, которое было раньше */
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 1;
+    padding: 0;
+}
+
+.edit-goal {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 0;
+}
+
+.edit-goal:active {
+    opacity: 1;
+}
+
+/* Надпись, если цель достигнута */
+.goal-completed {
+    text-align: center;
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
