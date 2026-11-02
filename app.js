@@ -172,12 +172,6 @@ window.addToGoal = function(id) {
     });
 };
 
-// Кнопка FAB (плюсик внизу справа)
-document.getElementById('fab-btn').onclick = () => {
-    // Для простоты она вызывает добавление цели
-    document.getElementById('add-goal-btn').click();
-};
-
 // --- Запуск ---
 loadState();
 
