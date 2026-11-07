@@ -81,8 +81,13 @@ async function syncFromDB() {
     isSyncing = false;
 }
 
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ
 async function saveState() {
     if (!state.id) return;
+    
+    // Блокируем синхронизацию, чтобы она не перезаписала экран старыми данными
+    isSyncing = true; 
+
     const updateData = { 
         income: state.income, 
         essentials: state.essentials, 
@@ -91,8 +96,12 @@ async function saveState() {
         pair_code: state.pair_code, 
         user2_id: state.user2_id || null 
     };
+    
     await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
     updateUI();
+    
+    // Отпускаем блокировку только через 1 секунду (чтобы база успела сохранить)
+    setTimeout(() => { isSyncing = false; }, 1000);
 }
 
 // --- Интерфейс ---
