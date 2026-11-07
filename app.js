@@ -12,7 +12,6 @@ const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
-// Категории по умолчанию (без лимитов)
 const DEFAULT_CATEGORIES = [
     { id: 'housing', name: 'Жилье', icon: '🛒', spent: 0 },
     { id: 'utilities', name: 'ЖКХ', icon: '🔌', spent: 0 },
@@ -81,11 +80,11 @@ async function syncFromDB() {
     isSyncing = false;
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ
+// УМНАЯ ФУНКЦИЯ СОХРАНЕНИЯ
 async function saveState() {
     if (!state.id) return;
     
-    // Блокируем синхронизацию, чтобы она не перезаписала экран старыми данными
+    // Жестко блокируем любые синхронизации
     isSyncing = true; 
 
     const updateData = { 
@@ -97,11 +96,14 @@ async function saveState() {
         user2_id: state.user2_id || null 
     };
     
+    // Ждем, пока база данных ответит, что всё сохранила
     await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
+    
+    // После успешного сохранения обновляем интерфейс
     updateUI();
     
-    // Отпускаем блокировку только через 1 секунду (чтобы база успела сохранить)
-    setTimeout(() => { isSyncing = false; }, 1000);
+    // Разблокируем синхронизацию с задержкой (чтобы база точно не выдала старые данные при следующем запросе)
+    setTimeout(() => { isSyncing = false; }, 1500);
 }
 
 // --- Интерфейс ---
@@ -117,7 +119,6 @@ function updateUI() {
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
     const totalSpentFact = state.categories.reduce((sum, cat) => sum + cat.spent, 0);
     
-    // Остаток: Доход - (План обязательных) - (Факт трат по категориям) - (Отложено в цели)
     const remainder = state.income - state.essentials - totalSpentFact - totalSavedInGoals;
     
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
@@ -147,7 +148,7 @@ function updateUI() {
     });
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 
-    // Категории (только факт, без лимитов)
+    // Категории
     const catList = document.getElementById('categories-list');
     catList.innerHTML = '';
     state.categories.forEach(cat => {
@@ -283,7 +284,7 @@ window.addToGoal = (id) => {
     }, '', remaining > 0 ? remaining : '');
 };
 
-// Модалка категории (просто ввод траты)
+// Модалка категории
 function openCategoryModal(catId) {
     const cat = state.categories.find(c => c.id === catId);
     if (!cat) return;
