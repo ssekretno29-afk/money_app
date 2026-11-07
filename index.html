@@ -26,14 +26,23 @@
             <div class="date" id="current-date">Октябрь 2026</div>
         </header>
 
+        <!-- Блок совместного бюджета -->
+        <section class="pair-section" id="pair-section">
+            <div id="pair-connected" class="hidden">
+                <div class="pair-badge">👥 Вы ведете общий бюджет</div>
+            </div>
+            <div id="pair-disconnected">
+                <button id="create-pair-btn" class="btn-outline">🤝 Создать пару (Пригласить)</button>
+                <button id="join-pair-btn" class="btn-outline" style="margin-top: 8px;">🔗 Ввести код партнера</button>
+            </div>
+        </section>
+
         <!-- Блок целей -->
         <section class="goals-section">
             <div class="section-header">
                 <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
             </div>
-            <div id="goals-list" class="goals-list">
-                <!-- Цели будут добавляться сюда -->
-            </div>
+            <div id="goals-list" class="goals-list"></div>
             <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
         </section>
 
