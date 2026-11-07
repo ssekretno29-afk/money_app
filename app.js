@@ -55,9 +55,11 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 }
 
 async function initApp() {
+    // Ищем запись пользователя
     const data = await apiRequest(`budgets?user1_id=eq.${TG_ID}`);
     
     if (data && data.length > 0) {
+        // Если запись есть - загружаем
         state = data[0];
         if (!state.categories || state.categories.length === 0) {
             state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
@@ -65,6 +67,7 @@ async function initApp() {
         }
         updateUI();
     } else {
+        // Если записи нет - создаем новую прямо сейчас
         const newBudget = { 
             user1_id: TG_ID, 
             income: 0, 
@@ -73,7 +76,12 @@ async function initApp() {
             categories: DEFAULT_CATEGORIES 
         };
         const res = await apiRequest('budgets', 'POST', newBudget);
-        if (res && res.length > 0) { state = res[0]; updateUI(); }
+        if (res && res.length > 0) {
+            state = res[0];
+            updateUI();
+        } else {
+            tg.showAlert('Ошибка создания бюджета в базе. Проверьте подключение!');
+        }
     }
     if (!syncInterval) syncInterval = setInterval(syncFromDB, 3000);
 }
@@ -90,9 +98,11 @@ async function syncFromDB() {
     isSyncing = false;
 }
 
-// УМНАЯ ФУНКЦИЯ СОХРАНЕНИЯ (без сброса в 0)
 async function saveState() {
-    if (!state.id) return;
+    if (!state.id) {
+        tg.showAlert('Ошибка: бюджет не создан!');
+        return;
+    }
     
     isSyncing = true; 
     clearInterval(syncInterval);
@@ -109,6 +119,8 @@ async function saveState() {
     if (res && res.length > 0) {
         state = res[0]; 
         updateUI();
+    } else {
+        tg.showAlert('Ошибка сохранения! Проверьте права в базе Supabase.');
     }
     
     setTimeout(() => { 
@@ -176,7 +188,6 @@ function updateUI() {
 function updateChart() {
     const totalSpent = state.categories.reduce((sum, cat) => sum + cat.spent, 0);
     document.getElementById('chart-total').textContent = formatMoney(totalSpent);
-
     const chart = document.getElementById('donut-chart');
     chart.innerHTML = ''; 
 
@@ -184,7 +195,6 @@ function updateChart() {
 
     const colors = ['#FF9B9B', '#B39DFF', '#85C1E9', '#F5B041', '#58D68D', '#EC7063', '#AAB7B8'];
     const data = state.categories.filter(c => c.spent > 0);
-
     let currentOffset = 0;
     const circumference = 2 * Math.PI * 15.9155;
 
@@ -286,11 +296,9 @@ window.addToGoal = (id) => {
     }, '', remaining > 0 ? remaining : '');
 };
 
-// Модалка категории
 function openCategoryModal(catId) {
     const cat = state.categories.find(c => c.id === catId);
     if (!cat) return;
-
     openModal(`Потрачено на "${cat.name}"`, false, true, (text, num) => {
         if (num > 0) {
             cat.spent += num;
