@@ -400,3 +400,15 @@ h2 {
     margin-top: 10px;
 }
 
+.pair-section {
+    margin-bottom: 20px;
+}
+.pair-badge {
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    padding: 12px;
+    border-radius: 16px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+}
