@@ -1,52 +1,124 @@
-// Инициализация Telegram WebApp
 const tg = window.Telegram.WebApp;
-tg.expand(); // Разворачиваем на весь экран
+tg.expand();
 
-// Получаем имя пользователя
+const SUPABASE_URL = 'https://ktiagbzahwmrrppcrlnz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_QRT5iIa7zGIi0RPknh4yeA_EWSOV_7V';
+const TG_ID = tg.initDataUnsafe?.user?.id || 12345; // ID пользователя в Telegram
+
 const userName = tg.initDataUnsafe?.user?.first_name || "друг";
 document.getElementById('user-name').textContent = userName;
 
-// Устанавливаем текущую дату
 const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
-// --- Состояние приложения ---
 let state = {
+    id: null,
+    pair_code: null,
     income: 0,
     essentials: 0,
     optional: 0,
-    goals: [] // { id, title, target, saved }
+    goals: []
 };
 
-// Загрузка из localStorage
-function loadState() {
-    const saved = localStorage.getItem('money_app_state');
-    if (saved) {
-        state = JSON.parse(saved);
+let isSyncing = false; // Защита от зацикливания
+let syncInterval = null;
+
+// --- API Запросы к Supabase ---
+async function apiRequest(endpoint, method = 'GET', body = null) {
+    const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+    
+    const options = { method, headers };
+    if (body) options.body = JSON.stringify(body);
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, options);
+    if (!res.ok) {
+        console.error('API Error:', await res.text());
+        return null;
     }
+    return await res.json();
+}
+
+// --- Логика работы с базой ---
+async function initApp() {
+    // Ищем бюджет, где я являюсь user1 или user2
+    const data = await apiRequest(`budgets?or=(user1_id.eq.${TG_ID},user2_id.eq.${TG_ID})`);
+    
+    if (data && data.length > 0) {
+        state = data[0];
+        updateUI();
+    } else {
+        // Если меня нет, создаю свой личный бюджет
+        const newBudget = {
+            user1_id: TG_ID,
+            pair_code: null,
+            income: 0,
+            essentials: 0,
+            optional: 0,
+            goals: []
+        };
+        const res = await apiRequest('budgets', 'POST', newBudget);
+        if (res && res.length > 0) {
+            state = res[0];
+            updateUI();
+        }
+    }
+    
+    // Запускаем автосинхронизацию каждые 3 секунды
+    if (!syncInterval) {
+        syncInterval = setInterval(syncFromDB, 3000);
+    }
+}
+
+async function syncFromDB() {
+    if (!state.id || isSyncing) return;
+    isSyncing = true;
+    
+    const data = await apiRequest(`budgets?id=eq.${state.id}`);
+    if (data && data.length > 0) {
+        state = data[0];
+        updateUI();
+    }
+    isSyncing = false;
+}
+
+async function saveState() {
+    if (!state.id) return;
+    const updateData = {
+        income: state.income,
+        essentials: state.essentials,
+        optional: state.optional,
+        goals: state.goals,
+        pair_code: state.pair_code,
+        user2_id: state.user2_id || null
+    };
+    await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
     updateUI();
 }
 
-// Сохранение в localStorage
-function saveState() {
-    localStorage.setItem('money_app_state', JSON.stringify(state));
-    updateUI();
-}
-
-// Обновление интерфейса
+// --- Отрисовка интерфейса ---
 function updateUI() {
-    // Считаем, сколько всего денег уже отложено в цели
-    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
+    // Проверка на связку
+    if (state.user2_id) {
+        document.getElementById('pair-connected').classList.remove('hidden');
+        document.getElementById('pair-disconnected').classList.add('hidden');
+    } else {
+        document.getElementById('pair-connected').classList.add('hidden');
+        document.getElementById('pair-disconnected').classList.remove('hidden');
+    }
 
-    // Расчет остатка
+    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
     const remainder = state.income - state.essentials - state.optional - totalSavedInGoals;
     
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-essentials').textContent = formatMoney(state.essentials);
 
-    // Отрисовка целей
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
     
@@ -54,7 +126,6 @@ function updateUI() {
         const percent = goal.target > 0 ? Math.min((goal.saved / goal.target) * 100, 100) : 0;
         const isCompleted = goal.saved >= goal.target;
         
-        // Если цель достигнута, рисуем надпись, иначе кнопку
         const actionButton = isCompleted 
             ? `<div class="goal-completed">Цель достигнута! 🎉</div>`
             : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
@@ -80,7 +151,6 @@ function updateUI() {
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 }
 
-// Форматирование денег
 function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
@@ -101,7 +171,6 @@ function openModal(title, showText, showNumber, action, initialText = '', initia
     inputNumber.classList.toggle('hidden', !showNumber);
     inputText.value = initialText;
     inputNumber.value = initialNumber;
-    
     currentAction = action;
     modalOverlay.classList.remove('hidden');
 }
@@ -121,8 +190,6 @@ btnSave.onclick = () => {
 };
 
 // --- Обработчики кнопок ---
-
-// Изменить доход
 document.getElementById('edit-income-btn').onclick = () => {
     openModal('Введите доход за месяц', false, true, (text, num) => {
         state.income = num;
@@ -130,7 +197,6 @@ document.getElementById('edit-income-btn').onclick = () => {
     }, '', state.income || '');
 };
 
-// Обязательные расходы
 document.getElementById('add-essential-btn').onclick = () => {
     openModal('Добавить обязательные расходы', false, true, (text, num) => {
         state.essentials += num;
@@ -138,7 +204,6 @@ document.getElementById('add-essential-btn').onclick = () => {
     });
 };
 
-// Необязательные расходы
 document.getElementById('add-optional-btn').onclick = () => {
     openModal('Сколько потратили?', false, true, (text, num) => {
         state.optional += num;
@@ -146,7 +211,6 @@ document.getElementById('add-optional-btn').onclick = () => {
     });
 };
 
-// Добавить цель
 document.getElementById('add-goal-btn').onclick = () => {
     if (state.goals.length >= 15) {
         tg.showAlert('Максимум 15 целей!');
@@ -154,18 +218,12 @@ document.getElementById('add-goal-btn').onclick = () => {
     }
     openModal('Новая цель', true, true, (text, num) => {
         if (!text) return;
-        const newGoal = {
-            id: Date.now(),
-            title: text,
-            target: num,
-            saved: 0
-        };
+        const newGoal = { id: Date.now(), title: text, target: num, saved: 0 };
         state.goals.push(newGoal);
         saveState();
     });
 };
 
-// Глобальные функции
 window.deleteGoal = function(id) {
     if (confirm('Удалить эту цель?')) {
         state.goals = state.goals.filter(g => g.id !== id);
@@ -176,7 +234,6 @@ window.deleteGoal = function(id) {
 window.editGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    
     openModal('Редактировать цель', true, true, (text, num) => {
         if (!text) return;
         goal.title = text;
@@ -188,15 +245,12 @@ window.editGoal = function(id) {
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    
     const remaining = goal.target - goal.saved;
-    
     openModal('Сколько отложить на цель?', false, true, (text, num) => {
         if (num > 0) {
-            // Если введенная сумма больше, чем осталось до цели, берем только остаток
             if (num > remaining) {
                 goal.saved += remaining;
-                tg.showAlert(`Вы ввели больше, чем нужно. Отложено только ${formatMoney(remaining)}.`);
+                tg.showAlert(`Отложено только ${formatMoney(remaining)}.`);
             } else {
                 goal.saved += num;
             }
@@ -205,10 +259,59 @@ window.addToGoal = function(id) {
     }, '', remaining > 0 ? remaining : '');
 };
 
-// --- Запуск ---
-loadState();
+// --- Логика приглашений ---
+document.getElementById('create-pair-btn').onclick = async () => {
+    if (state.user2_id) return tg.showAlert('Партнер уже привязан!');
+    
+    // Генерируем случайный 6-значный код
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    state.pair_code = code;
+    await saveState();
+    
+    tg.showAlert(`Ваш код для приглашения: ${code}\n\nОтправьте его партнеру.`);
+    // На всякий случай копируем в буфер
+    navigator.clipboard.writeText(code);
+};
 
-// Логика заставки
+document.getElementById('join-pair-btn').onclick = () => {
+    openModal('Введите код партнера', true, false, async (text) => {
+        if (!text) return;
+        const code = text.toUpperCase();
+        
+        // Ищем бюджет с таким кодом, где уже есть user1
+        const data = await apiRequest(`budgets?pair_code=eq.${code}`);
+        
+        if (data && data.length > 0) {
+            const targetBudget = data[0];
+            if (targetBudget.user2_id) {
+                return tg.showAlert('Этот код уже использован!');
+            }
+            if (targetBudget.user1_id === TG_ID) {
+                return tg.showAlert('Это ваш собственный код!');
+            }
+            
+            // Привязываем наш текущий бюджет к чужому
+            targetBudget.user2_id = TG_ID;
+            await apiRequest(`budgets?id=eq.${targetBudget.id}`, 'PATCH', { user2_id: TG_ID });
+            
+            // Удаляем старый пустой бюджет текущего пользователя
+            if (state.id && !state.user2_id) {
+                await apiRequest(`budgets?id=eq.${state.id}`, 'DELETE');
+            }
+            
+            // Перезагружаем приложение с новым бюджетом
+            state = targetBudget;
+            saveState();
+            tg.showAlert('Вы успешно объединили бюджет!');
+        } else {
+            tg.showAlert('Код не найден!');
+        }
+    });
+};
+
+// --- Запуск ---
+initApp();
+
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash-screen');
     setTimeout(() => {
