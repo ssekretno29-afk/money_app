@@ -163,5 +163,87 @@ h2 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap:
 .splash-logo { font-size: 80px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
 .splash-title { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; margin-bottom: 8px; }
 .splash-subtitle { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+/* Новые стили для вкладки Траты */
+.expenses-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+.limit-badge {
+    background: #F2F2F7;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.category-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 15px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.category-card:active {
+    transform: scale(0.98);
+}
+.cat-icon {
+    font-size: 24px;
+    background: #F9F6F0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+}
+.cat-info {
+    flex: 1;
+}
+.cat-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 15px;
+}
+.cat-fact {
+    font-weight: 700;
+}
+.cat-progress {
+    height: 6px;
+    background: #F2F2F7;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.cat-progress-fill {
+    height: 100%;
+    background: var(--purple-main);
+    border-radius: 3px;
+}
+.cat-progress-fill.danger {
+    background: var(--danger);
+}
+.cat-bottom {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.cat-bottom span:last-child {
+    color: var(--purple-dark);
+    font-weight: 600;
+}
 @keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
