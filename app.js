@@ -12,8 +12,19 @@ const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
+// Категории по умолчанию
+const DEFAULT_CATEGORIES = [
+    { id: 'housing', name: 'Жилье', icon: '🛒', limit: 0, spent: 0 },
+    { id: 'utilities', name: 'ЖКХ', icon: '🔌', limit: 0, spent: 0 },
+    { id: 'food', name: 'Продукты', icon: '🍔', limit: 0, spent: 0 },
+    { id: 'transport', name: 'Транспорт', icon: '🚌', limit: 0, spent: 0 },
+    { id: 'hobbies', name: 'Увлечения', icon: '🎮', limit: 0, spent: 0 },
+    { id: 'education', name: 'Обучение', icon: '📚', limit: 0, spent: 0 },
+    { id: 'other', name: 'Прочее', icon: '📦', limit: 0, spent: 0 }
+];
+
 let state = {
-    id: null, pair_code: null, income: 0, essentials: 0, optional: 0, goals: []
+    id: null, pair_code: null, income: 0, essentials: 0, goals: [], categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES))
 };
 
 let isSyncing = false;
@@ -25,19 +36,12 @@ const screens = document.querySelectorAll('.screen');
 
 navItems.forEach(item => {
     item.onclick = () => {
-        // Убираем активный класс у всех
         navItems.forEach(n => n.classList.remove('active'));
         screens.forEach(s => s.classList.add('hidden'));
-        
-        // Добавляем активный класс нажатой
         item.classList.add('active');
         const targetId = item.getAttribute('data-target');
         document.getElementById(targetId).classList.remove('hidden');
-        
-        // Если открыли статистику, обновляем график
-        if (targetId === 'screen-stats') {
-            updateChart();
-        }
+        if (targetId === 'screen-stats') updateChart();
     };
 });
 
@@ -55,9 +59,10 @@ async function initApp() {
     const data = await apiRequest(`budgets?or=(user1_id.eq.${TG_ID},user2_id.eq.${TG_ID})`);
     if (data && data.length > 0) {
         state = data[0];
+        if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
         updateUI();
     } else {
-        const newBudget = { user1_id: TG_ID, pair_code: null, income: 0, essentials: 0, optional: 0, goals: [] };
+        const newBudget = { user1_id: TG_ID, pair_code: null, income: 0, essentials: 0, goals: [], categories: DEFAULT_CATEGORIES };
         const res = await apiRequest('budgets', 'POST', newBudget);
         if (res && res.length > 0) { state = res[0]; updateUI(); }
     }
@@ -68,20 +73,30 @@ async function syncFromDB() {
     if (!state.id || isSyncing) return;
     isSyncing = true;
     const data = await apiRequest(`budgets?id=eq.${state.id}`);
-    if (data && data.length > 0) { state = data[0]; updateUI(); }
+    if (data && data.length > 0) { 
+        state = data[0]; 
+        if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        updateUI(); 
+    }
     isSyncing = false;
 }
 
 async function saveState() {
     if (!state.id) return;
-    const updateData = { income: state.income, essentials: state.essentials, optional: state.optional, goals: state.goals, pair_code: state.pair_code, user2_id: state.user2_id || null };
+    const updateData = { 
+        income: state.income, 
+        essentials: state.essentials, 
+        goals: state.goals, 
+        categories: state.categories,
+        pair_code: state.pair_code, 
+        user2_id: state.user2_id || null 
+    };
     await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
     updateUI();
 }
 
 // --- Обновление интерфейса ---
 function updateUI() {
-    // 1. Обновляем Главный экран
     if (state.user2_id) {
         document.getElementById('pair-connected').classList.remove('hidden');
         document.getElementById('pair-disconnected').classList.add('hidden');
@@ -90,13 +105,18 @@ function updateUI() {
         document.getElementById('pair-disconnected').classList.remove('hidden');
     }
 
+    // Считаем суммы
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
-    const remainder = state.income - state.essentials - state.optional - totalSavedInGoals;
+    const totalSpentFact = state.categories.reduce((sum, cat) => sum + cat.spent, 0);
+    
+    // Остаток: Доход - (План обязательных) - (Факт остальных трат) - (Отложено в цели)
+    const remainder = state.income - state.essentials - totalSpentFact - totalSavedInGoals;
     
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-essentials').textContent = formatMoney(state.essentials);
 
+    // Рисуем цели
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
     state.goals.forEach(goal => {
@@ -119,54 +139,74 @@ function updateUI() {
     });
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 
-    // 2. Обновляем экран Трат
-    document.getElementById('cal-income').textContent = formatMoney(state.income);
-    document.getElementById('cal-spent').textContent = formatMoney(state.essentials + state.optional);
-    document.getElementById('cal-saved').textContent = formatMoney(totalSavedInGoals);
-    document.getElementById('exp-essential-val').textContent = formatMoney(state.essentials);
-    document.getElementById('exp-optional-val').textContent = formatMoney(state.optional);
+    // Рисуем категории на вкладке Траты
+    const catList = document.getElementById('categories-list');
+    catList.innerHTML = '';
+    state.categories.forEach(cat => {
+        const percent = cat.limit > 0 ? Math.min((cat.spent / cat.limit) * 100, 100) : (cat.spent > 0 ? 100 : 0);
+        const isOver = cat.spent > cat.limit && cat.limit > 0;
+        
+        let remainText = '';
+        if (cat.limit > 0) {
+            remainText = isOver ? `Перерасход ${formatMoney(cat.spent - cat.limit)}` : `Осталось ${formatMoney(cat.limit - cat.spent)}`;
+        } else {
+            remainText = cat.spent > 0 ? `Потрачено` : `Лимит не задан`;
+        }
 
-    // 3. Если открыт экран статистики — перерисовываем
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.onclick = () => openCategoryModal(cat.id);
+        card.innerHTML = `
+            <div class="cat-icon">${cat.icon}</div>
+            <div class="cat-info">
+                <div class="cat-top">
+                    <span>${cat.name}</span>
+                    <span class="cat-fact">${formatMoney(cat.spent)} / ${formatMoney(cat.limit)}</span>
+                </div>
+                <div class="cat-progress">
+                    <div class="cat-progress-fill ${isOver ? 'danger' : ''}" style="width: ${percent}%"></div>
+                </div>
+                <div class="cat-bottom">
+                    <span>${remainText}</span>
+                </div>
+            </div>
+        `;
+        catList.appendChild(card);
+    });
+
     if (!document.getElementById('screen-stats').classList.contains('hidden')) {
         updateChart();
     }
 }
 
-// --- Отрисовка Диаграммы (Статистика) ---
+// --- Отрисовка Диаграммы ---
 function updateChart() {
-    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
-    const totalSpent = state.essentials + state.optional;
-    const totalAll = totalSpent + totalSavedInGoals;
-
-    document.getElementById('chart-total').textContent = formatMoney(totalAll);
+    const totalSpent = state.categories.reduce((sum, cat) => sum + cat.spent, 0);
+    document.getElementById('chart-total').textContent = formatMoney(totalSpent);
 
     const chart = document.getElementById('donut-chart');
-    chart.innerHTML = ''; // Очищаем
+    chart.innerHTML = ''; 
 
-    if (totalAll === 0) return;
+    if (totalSpent === 0) return;
 
-    // Данные для диаграммы
-    const data = [
-        { label: 'Обязательные', value: state.essentials, color: 'var(--chart-1)' },
-        { label: 'Необязательные', value: state.optional, color: 'var(--chart-3)' },
-        { label: 'В цели', value: totalSavedInGoals, color: 'var(--chart-2)' }
-    ].filter(d => d.value > 0);
+    const colors = ['#FF9B9B', '#B39DFF', '#85C1E9', '#F5B041', '#58D68D', '#EC7063', '#AAB7B8'];
+    const data = state.categories.filter(c => c.spent > 0);
 
     let currentOffset = 0;
-    const circumference = 2 * Math.PI * 15.9155; // Радиус 15.9155 для 100%
+    const circumference = 2 * Math.PI * 15.9155;
 
-    data.forEach(item => {
-        const percent = (item.value / totalAll) * 100;
+    data.forEach((item, index) => {
+        const percent = (item.spent / totalSpent) * 100;
         const dashArray = (percent / 100) * circumference;
-        const dashOffset = currentOffset;
+        const color = colors[index % colors.length];
         
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '18');
         circle.setAttribute('cy', '18');
         circle.setAttribute('r', '15.9155');
-        circle.setAttribute('stroke', item.color);
+        circle.setAttribute('stroke', color);
         circle.setAttribute('stroke-dasharray', `${dashArray} ${circumference - dashArray}`);
-        circle.setAttribute('stroke-dashoffset', -dashOffset);
+        circle.setAttribute('stroke-dashoffset', -currentOffset);
         
         chart.appendChild(circle);
         currentOffset += dashArray;
@@ -175,13 +215,14 @@ function updateChart() {
     // Легенда
     const legend = document.getElementById('chart-legend');
     legend.innerHTML = '';
-    data.forEach(item => {
-        const percent = Math.round((item.value / totalAll) * 100);
+    data.forEach((item, index) => {
+        const percent = Math.round((item.spent / totalSpent) * 100);
+        const color = colors[index % colors.length];
         const div = document.createElement('div');
         div.className = 'legend-item';
         div.innerHTML = `
-            <div class="legend-color" style="background: ${item.color}"></div>
-            <div class="legend-text">${item.label}</div>
+            <div class="legend-color" style="background: ${color}"></div>
+            <div class="legend-text">${item.name}</div>
             <div class="legend-val">${percent}%</div>
         `;
         legend.appendChild(div);
@@ -192,14 +233,13 @@ function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
 
-// --- Модальное окно ---
+// --- Модалки ---
 const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
 const inputNumber = document.getElementById('modal-input-number');
 const btnCancel = document.getElementById('modal-cancel');
 const btnSave = document.getElementById('modal-save');
-
 let currentAction = null;
 
 function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '') {
@@ -222,10 +262,9 @@ btnSave.onclick = () => {
     modalOverlay.classList.add('hidden');
 };
 
-// --- Обработчики кнопок ---
+// --- Обработчики ---
 document.getElementById('edit-income-btn').onclick = () => openModal('Введите доход за месяц', false, true, (text, num) => { state.income = num; saveState(); }, '', state.income || '');
-document.getElementById('add-essential-btn').onclick = () => openModal('Добавить обязательные расходы', false, true, (text, num) => { state.essentials += num; saveState(); });
-document.getElementById('add-optional-btn').onclick = () => openModal('Сколько потратили?', false, true, (text, num) => { state.optional += num; saveState(); });
+document.getElementById('add-essential-btn').onclick = () => openModal('Сумма обязательных трат (план)', false, true, (text, num) => { state.essentials = num; saveState(); }, '', state.essentials || '');
 
 document.getElementById('add-goal-btn').onclick = () => {
     if (state.goals.length >= 15) return tg.showAlert('Максимум 15 целей!');
@@ -236,44 +275,51 @@ document.getElementById('add-goal-btn').onclick = () => {
     });
 };
 
-window.deleteGoal = function(id) {
-    if (confirm('Удалить эту цель?')) {
-        state.goals = state.goals.filter(g => g.id !== id);
-        saveState();
-    }
-};
-
-window.editGoal = function(id) {
+window.deleteGoal = (id) => { if (confirm('Удалить цель?')) { state.goals = state.goals.filter(g => g.id !== id); saveState(); } };
+window.editGoal = (id) => {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    openModal('Редактировать цель', true, true, (text, num) => {
-        if (!text) return;
-        goal.title = text;
-        goal.target = num;
-        saveState();
-    }, goal.title, goal.target);
+    openModal('Редактировать цель', true, true, (text, num) => { goal.title = text; goal.target = num; saveState(); }, goal.title, goal.target);
 };
-
-window.addToGoal = function(id) {
+window.addToGoal = (id) => {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
     const remaining = goal.target - goal.saved;
-    openModal('Сколько отложить на цель?', false, true, (text, num) => {
+    openModal('Сколько отложить?', false, true, (text, num) => {
         if (num > 0) {
-            if (num > remaining) { goal.saved += remaining; tg.showAlert(`Отложено только ${formatMoney(remaining)}.`); }
-            else { goal.saved += num; }
+            goal.saved += (num > remaining) ? remaining : num;
+            if (num > remaining) tg.showAlert(`Отложено только ${formatMoney(remaining)}.`);
             saveState();
         }
     }, '', remaining > 0 ? remaining : '');
 };
 
-// --- Логика приглашений ---
+// Логика открытия категории (ввод лимита и траты)
+function openCategoryModal(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+
+    // Открываем окно для изменения лимита
+    openModal(`Лимит для "${cat.name}"`, false, true, (text, num) => {
+        cat.limit = num;
+        saveState();
+        // Сразу после сохранения лимита спрашиваем, сколько потрачено
+        setTimeout(() => {
+            openModal(`Потрачено на "${cat.name}"`, false, true, (text2, num2) => {
+                cat.spent += num2;
+                saveState();
+            });
+        }, 300);
+    }, '', cat.limit || '');
+}
+
+// Логика приглашений
 document.getElementById('create-pair-btn').onclick = async () => {
     if (state.user2_id) return tg.showAlert('Партнер уже привязан!');
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     state.pair_code = code;
     await saveState();
-    tg.showAlert(`Ваш код для приглашения: ${code}\n\nОтправьте его партнеру.`);
+    tg.showAlert(`Ваш код: ${code}\n\nОтправьте партнеру.`);
     navigator.clipboard.writeText(code);
 };
 
@@ -281,40 +327,28 @@ document.getElementById('join-pair-btn').onclick = () => {
     openModal('Введите код партнера', true, false, async (text) => {
         if (!text) return;
         const code = text.toUpperCase();
-        
         const data = await apiRequest(`budgets?pair_code=eq.${code}`);
-        
         if (data && data.length > 0) {
             const targetBudget = data[0];
-            if (targetBudget.user2_id) {
-                return tg.showAlert('Этот код уже использован!');
-            }
-            if (targetBudget.user1_id === TG_ID) {
-                return tg.showAlert('Это ваш собственный код!');
-            }
+            if (targetBudget.user2_id) return tg.showAlert('Код уже использован!');
+            if (targetBudget.user1_id === TG_ID) return tg.showAlert('Это ваш код!');
             
             targetBudget.user2_id = TG_ID;
             await apiRequest(`budgets?id=eq.${targetBudget.id}`, 'PATCH', { user2_id: TG_ID });
-            
-            if (state.id && !state.user2_id) {
-                await apiRequest(`budgets?id=eq.${state.id}`, 'DELETE');
-            }
+            if (state.id && !state.user2_id) await apiRequest(`budgets?id=eq.${state.id}`, 'DELETE');
             
             state = targetBudget;
+            if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
             saveState();
-            tg.showAlert('Вы успешно объединили бюджет!');
+            tg.showAlert('Бюджеты объединены!');
         } else {
             tg.showAlert('Код не найден!');
         }
     });
 };
 
-// --- Запуск ---
+// Запуск
 initApp();
-
 window.addEventListener('load', () => {
-    const splash = document.getElementById('splash-screen');
-    setTimeout(() => {
-        splash.classList.add('hidden');
-    }, 2000);
+    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
 });
