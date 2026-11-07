@@ -277,4 +277,44 @@ document.getElementById('create-pair-btn').onclick = async () => {
     navigator.clipboard.writeText(code);
 };
 
-document.getElementById('join-pair-btn').onclick
+document.getElementById('join-pair-btn').onclick = () => {
+    openModal('Введите код партнера', true, false, async (text) => {
+        if (!text) return;
+        const code = text.toUpperCase();
+        
+        const data = await apiRequest(`budgets?pair_code=eq.${code}`);
+        
+        if (data && data.length > 0) {
+            const targetBudget = data[0];
+            if (targetBudget.user2_id) {
+                return tg.showAlert('Этот код уже использован!');
+            }
+            if (targetBudget.user1_id === TG_ID) {
+                return tg.showAlert('Это ваш собственный код!');
+            }
+            
+            targetBudget.user2_id = TG_ID;
+            await apiRequest(`budgets?id=eq.${targetBudget.id}`, 'PATCH', { user2_id: TG_ID });
+            
+            if (state.id && !state.user2_id) {
+                await apiRequest(`budgets?id=eq.${state.id}`, 'DELETE');
+            }
+            
+            state = targetBudget;
+            saveState();
+            tg.showAlert('Вы успешно объединили бюджет!');
+        } else {
+            tg.showAlert('Код не найден!');
+        }
+    });
+};
+
+// --- Запуск ---
+initApp();
+
+window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    setTimeout(() => {
+        splash.classList.add('hidden');
+    }, 2000);
+});
