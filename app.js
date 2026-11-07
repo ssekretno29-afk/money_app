@@ -58,7 +58,10 @@ async function initApp() {
     const data = await apiRequest(`budgets?or=(user1_id.eq.${TG_ID},user2_id.eq.${TG_ID})`);
     if (data && data.length > 0) {
         state = data[0];
-        if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        if (!state.categories || state.categories.length === 0) {
+            state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+            await saveState();
+        }
         updateUI();
     } else {
         const newBudget = { user1_id: TG_ID, pair_code: null, income: 0, essentials: 0, goals: [], categories: DEFAULT_CATEGORIES };
@@ -74,7 +77,7 @@ async function syncFromDB() {
     const data = await apiRequest(`budgets?id=eq.${state.id}`);
     if (data && data.length > 0) { 
         state = data[0]; 
-        if (!state.categories) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        if (!state.categories || state.categories.length === 0) state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
         updateUI(); 
     }
     isSyncing = false;
@@ -97,13 +100,17 @@ async function saveState() {
     };
     
     // Ждем, пока база данных ответит, что всё сохранила
-    await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
+    const res = await apiRequest(`budgets?id=eq.${state.id}`, 'PATCH', updateData);
+    
+    if (res === null) {
+        tg.showAlert('Ошибка сохранения! База данных не приняла данные.');
+    }
     
     // После успешного сохранения обновляем интерфейс
     updateUI();
     
     // Разблокируем синхронизацию с задержкой (чтобы база точно не выдала старые данные при следующем запросе)
-    setTimeout(() => { isSyncing = false; }, 1500);
+    setTimeout(() => { isSyncing = false; }, 2000);
 }
 
 // --- Интерфейс ---
