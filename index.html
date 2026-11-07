@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Заставка -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">💸</div>
@@ -20,68 +19,84 @@
     </div>
 
     <div class="app-container">
-        <!-- Шапка -->
         <header>
             <div class="greeting">Привет, <span id="user-name">друг</span></div>
             <div class="date" id="current-date">Октябрь 2026</div>
         </header>
 
-        <!-- Блок совместного бюджета -->
-        <section class="pair-section" id="pair-section">
-            <div id="pair-connected" class="hidden">
-                <div class="pair-badge">👥 Вы ведете общий бюджет</div>
-            </div>
-            <div id="pair-disconnected">
-                <button id="create-pair-btn" class="btn-outline">🤝 Создать пару (Пригласить)</button>
-                <button id="join-pair-btn" class="btn-outline" style="margin-top: 8px;">🔗 Ввести код партнера</button>
-            </div>
-        </section>
-
-        <!-- Блок целей -->
-        <section class="goals-section">
-            <div class="section-header">
-                <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
-            </div>
-            <div id="goals-list" class="goals-list"></div>
-            <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
-        </section>
-
-        <!-- Главная фиолетовая карточка -->
-        <section class="money-card">
-            <div class="card-label">Осталось в этом месяце</div>
-            <div class="card-amount" id="display-remainder">0 ₽</div>
-            
-            <div class="money-details">
-                <div class="detail-item">
-                    <span class="detail-label">Доход</span>
-                    <span class="detail-value" id="display-income">0 ₽</span>
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
+        <main id="screen-home" class="screen active">
+            <section class="goals-section">
+                <div class="section-header">
+                    <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">Обязательные</span>
-                    <span class="detail-value" id="display-essentials">0 ₽</span>
+                <div id="goals-list" class="goals-list"></div>
+                <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
+            </section>
+
+            <section class="money-card">
+                <div class="card-label">Осталось в этом месяце</div>
+                <div class="card-amount" id="display-remainder">0 ₽</div>
+                
+                <div class="money-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Доход</span>
+                        <span class="detail-value" id="display-income">0 ₽</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Обязательные</span>
+                        <span class="detail-value" id="display-essentials">0 ₽</span>
+                    </div>
+                </div>
+
+                <div class="money-actions">
+                    <button id="edit-income-btn" class="btn-light">Изменить доход</button>
+                    <button id="add-essential-btn" class="btn-light">Указать обязательные</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- ЭКРАН 2: ТРАТЫ (Категории) -->
+        <main id="screen-expenses" class="screen hidden">
+            <h2>Траты</h2>
+            <div class="expenses-header">
+                <span>Категории</span>
+                <span class="limit-badge">Потрачено</span>
+            </div>
+            <div id="categories-list" class="categories-list"></div>
+        </main>
+
+        <!-- ЭКРАН 3: СТАТИСТИКА -->
+        <main id="screen-stats" class="screen hidden">
+            <h2>Статистика расходов</h2>
+            <div class="chart-container">
+                <svg viewBox="0 0 36 36" class="donut-chart" id="donut-chart"></svg>
+                <div class="chart-center">
+                    <span class="chart-total-label">Потрачено</span>
+                    <span class="chart-total" id="chart-total">0 ₽</span>
                 </div>
             </div>
+            <div class="legend" id="chart-legend"></div>
+        </main>
 
-            <div class="money-actions">
-                <button id="edit-income-btn" class="btn-light">Изменить доход</button>
-                <button id="add-essential-btn" class="btn-light">+ Обязательные</button>
-                <button id="add-optional-btn" class="btn-light btn-danger">− Необязательные</button>
+        <!-- ЭКРАН 4: НАСТРОЙКИ -->
+        <main id="screen-settings" class="screen hidden">
+            <h2>Настройки</h2>
+            <div class="settings-card" style="background: var(--white); padding: 20px; border-radius: 24px; box-shadow: var(--card-shadow);">
+                <p style="color: var(--text-muted); font-size: 14px; text-align: center;">Здесь скоро появятся настройки</p>
             </div>
-        </section>
-
-        <!-- Кнопка "Спланировать бюджет" -->
-        <div class="plan-budget-btn" id="plan-budget-btn">
-            <div class="icon-box">📊</div>
-            <div class="text-box">
-                <span class="title">Спланировать бюджет</span>
-                <span class="subtitle">Распределите доход по категориям</span>
-            </div>
-        </div>
+        </main>
 
         <div class="bottom-spacer"></div>
     </div>
 
-    <!-- Модальные окна -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
+        <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
+        <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
+        <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
+    </nav>
+
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
