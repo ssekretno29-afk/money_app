@@ -26,18 +26,19 @@
             <div class="date" id="current-date">Октябрь 2026</div>
         </header>
 
-        <!-- ЭКРАН 1: ГЛАВНАЯ (Бюджет и Цели) -->
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="screen-home" class="screen active">
             <section class="pair-section" id="pair-section">
                 <div id="pair-connected" class="hidden">
                     <div class="pair-badge">👥 Вы ведете общий бюджет</div>
                 </div>
                 <div id="pair-disconnected">
-                    <button id="create-pair-btn" class="btn-outline">🤝 Создать пару (Пригласить)</button>
-                    <button id="join-pair-btn" class="btn-outline" style="margin-top: 8px;">🔗 Ввести код партнера</button>
+                    <button id="create-pair-btn" class="btn-outline" style="margin-top: 0; margin-bottom: 8px;">🤝 Создать пару (Пригласить)</button>
+                    <button id="join-pair-btn" class="btn-outline" style="margin-top: 0;">🔗 Ввести код партнера</button>
                 </div>
             </section>
 
+            <!-- Мои цели -->
             <section class="goals-section">
                 <div class="section-header">
                     <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
@@ -46,6 +47,7 @@
                 <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
             </section>
 
+            <!-- Доход и остаток -->
             <section class="money-card">
                 <div class="card-label">Осталось в этом месяце</div>
                 <div class="card-amount" id="display-remainder">0 ₽</div>
@@ -63,47 +65,20 @@
 
                 <div class="money-actions">
                     <button id="edit-income-btn" class="btn-light">Изменить доход</button>
-                    <button id="add-essential-btn" class="btn-light">+ Обязательные</button>
-                    <button id="add-optional-btn" class="btn-light btn-danger">− Необязательные</button>
+                    <button id="add-essential-btn" class="btn-light">Указать обязательные</button>
                 </div>
             </section>
         </main>
 
-        <!-- ЭКРАН 2: ТРАТЫ -->
+        <!-- ЭКРАН 2: ТРАТЫ (Категории) -->
         <main id="screen-expenses" class="screen hidden">
             <h2>Траты</h2>
-            
-            <div class="calendar-card">
-                <div class="calendar-header">
-                    <button class="cal-btn" id="cal-prev">←</button>
-                    <span id="cal-month">Ноябрь 2026</span>
-                    <button class="cal-btn" id="cal-next">→</button>
-                </div>
-                <div class="calendar-stats">
-                    <div class="cal-stat">
-                        <span class="cal-label">Заработано</span>
-                        <span class="cal-value" id="cal-income">0 ₽</span>
-                    </div>
-                    <div class="cal-stat">
-                        <span class="cal-label">Потрачено</span>
-                        <span class="cal-value" id="cal-spent">0 ₽</span>
-                    </div>
-                    <div class="cal-stat">
-                        <span class="cal-label">Отложено в цели</span>
-                        <span class="cal-value" id="cal-saved">0 ₽</span>
-                    </div>
-                </div>
+            <div class="expenses-header">
+                <span>Категории</span>
+                <span class="limit-badge">План / Факт</span>
             </div>
-
-            <div class="expenses-list">
-                <div class="expense-item">
-                    <span>Обязательные траты</span>
-                    <span id="exp-essential-val">0 ₽</span>
-                </div>
-                <div class="expense-item">
-                    <span>Необязательные траты</span>
-                    <span id="exp-optional-val">0 ₽</span>
-                </div>
+            <div id="categories-list" class="categories-list">
+                <!-- Категории будут добавляться через JS -->
             </div>
         </main>
 
@@ -112,21 +87,17 @@
             <h2>Статистика расходов</h2>
             
             <div class="chart-container">
-                <svg viewBox="0 0 36 36" class="donut-chart" id="donut-chart">
-                    <!-- Диаграмма будет рисоваться через JS -->
-                </svg>
+                <svg viewBox="0 0 36 36" class="donut-chart" id="donut-chart"></svg>
                 <div class="chart-center">
-                    <span class="chart-total-label">Всего</span>
+                    <span class="chart-total-label">Потрачено</span>
                     <span class="chart-total" id="chart-total">0 ₽</span>
                 </div>
             </div>
 
-            <div class="legend" id="chart-legend">
-                <!-- Легенда будет добавляться через JS -->
-            </div>
+            <div class="legend" id="chart-legend"></div>
         </main>
-        
-              <!-- ЭКРАН 4: НАСТРОЙКИ -->
+
+        <!-- ЭКРАН 4: НАСТРОЙКИ -->
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
             <div class="settings-card" style="background: var(--white); padding: 20px; border-radius: 24px; box-shadow: var(--card-shadow);">
@@ -139,18 +110,10 @@
 
     <!-- Нижняя навигация -->
     <nav class="bottom-nav">
-        <div class="nav-item active" data-target="screen-home">
-            <span class="nav-icon">🏠</span>
-        </div>
-        <div class="nav-item" data-target="screen-expenses">
-            <span class="nav-icon">💲</span>
-        </div>
-        <div class="nav-item" data-target="screen-stats">
-            <span class="nav-icon">📊</span>
-        </div>
-        <div class="nav-item" data-target="screen-settings">
-            <span class="nav-icon">⚙️</span>
-        </div>
+        <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
+        <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
+        <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
+        <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
     <!-- Модальные окна -->
