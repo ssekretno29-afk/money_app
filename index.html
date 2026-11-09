@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мани.точка</title>
+    <title>FAT_KOPILKA</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Заставка -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">💸</div>
@@ -19,12 +20,15 @@
     </div>
 
     <div class="app-container">
+        <!-- Шапка -->
         <header>
             <div class="greeting">Привет, <span id="user-name">друг</span></div>
-            <div class="date" id="current-date">Октябрь 2026</div>
+            <div class="date" id="current-date">Ноябрь 2026</div>
         </header>
 
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="screen-home" class="screen active">
+            <!-- Мои цели -->
             <section class="goals-section">
                 <div class="section-header">
                     <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
@@ -33,66 +37,51 @@
                 <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
             </section>
 
+            <!-- Копилка дохода -->
             <section class="money-card">
-                <div class="card-label">Осталось в этом месяце</div>
-                <div class="card-amount" id="display-remainder">0 ₽</div>
+                <div class="card-label">Доход в этом месяце</div>
+                <!-- Сюда будем выводить сумму -->
+                <div class="card-amount" id="display-income">0 ₽</div>
                 
-                <div class="money-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Доход</span>
-                        <span class="detail-value" id="display-income">0 ₽</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Обязательные</span>
-                        <span class="detail-value" id="display-essentials">0 ₽</span>
-                    </div>
-                </div>
-
-                <div class="money-actions">
-                    <button id="edit-income-btn" class="btn-light">Изменить доход</button>
-                    <button id="add-essential-btn" class="btn-light">Указать обязательные</button>
-                </div>
+                <!-- Кнопка добавления денег в копилку -->
+                <button id="add-income-btn" class="btn-add-money">+ Добавить деньги</button>
             </section>
         </main>
 
+        <!-- ЭКРАН 2: СТАТИСТИКА (Пустой) -->
+        <main id="screen-stats" class="screen hidden">
+            <h2>Статистика</h2>
+            <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появится статистика</p>
+        </main>
+
+        <!-- ЭКРАН 3: ТРАТЫ (Пустой) -->
         <main id="screen-expenses" class="screen hidden">
             <h2>Траты</h2>
-            <div class="expenses-header">
-                <span>Категории</span>
-                <span class="limit-badge">Потрачено</span>
-            </div>
-            <div id="categories-list" class="categories-list"></div>
+            <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся категории трат</p>
         </main>
 
-        <main id="screen-stats" class="screen hidden">
-            <h2>Статистика расходов</h2>
-            <div class="chart-container">
-                <svg viewBox="0 0 36 36" class="donut-chart" id="donut-chart"></svg>
-                <div class="chart-center">
-                    <span class="chart-total-label">Потрачено</span>
-                    <span class="chart-total" id="chart-total">0 ₽</span>
-                </div>
-            </div>
-            <div class="legend" id="chart-legend"></div>
-        </main>
-
+        <!-- ЭКРАН 4: НАСТРОЙКИ (Пустой) -->
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
-            <div class="settings-card" style="background: var(--white); padding: 20px; border-radius: 24px; box-shadow: var(--card-shadow);">
-                <p style="color: var(--text-muted); font-size: 14px; text-align: center;">Здесь скоро появятся настройки</p>
-            </div>
+            <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся настройки</p>
         </main>
 
         <div class="bottom-spacer"></div>
     </div>
 
+    <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
+        <!-- Домик -->
         <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
-        <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
+        <!-- Статистика -->
         <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
+        <!-- Траты -->
+        <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
+        <!-- Настройки -->
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
+    <!-- Модальные окна (всплывающие окошки ввода) -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
