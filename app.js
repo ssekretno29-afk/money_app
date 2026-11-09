@@ -178,3 +178,145 @@ function updateChart() {
             <div class="legend-text">${cat.name}</div>
             <div class="legend-percent">${Math.round(percent)}%</div>
         `;
+        legend.appendChild(legendItem);
+    });
+}
+
+// --- Навигация ---
+const navItems = document.querySelectorAll('.nav-item');
+const screens = document.querySelectorAll('.screen');
+
+navItems.forEach(item => {
+    item.onclick = () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        screens.forEach(s => s.classList.add('hidden'));
+        item.classList.add('active');
+        const targetId = item.getAttribute('data-target');
+        document.getElementById(targetId).classList.remove('hidden');
+        // Если открыли статистику, обновляем график
+        if (targetId === 'screen-stats') updateChart();
+    };
+});
+
+// --- Модалки ---
+const modalOverlay = document.getElementById('modal-overlay');
+const modalTitle = document.getElementById('modal-title');
+const inputText = document.getElementById('modal-input-text');
+const inputNumber = document.getElementById('modal-input-number');
+const btnCancel = document.getElementById('modal-cancel');
+const btnSave = document.getElementById('modal-save');
+let currentAction = null;
+
+function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '') {
+    modalTitle.textContent = title;
+    inputText.classList.toggle('hidden', !showText);
+    inputNumber.classList.toggle('hidden', !showNumber);
+    inputText.value = initialText;
+    inputNumber.value = initialNumber;
+    currentAction = action;
+    modalOverlay.classList.remove('hidden');
+}
+
+btnCancel.onclick = () => { modalOverlay.classList.add('hidden'); currentAction = null; };
+btnSave.onclick = () => {
+    if (currentAction) {
+        const textVal = inputText.value.trim();
+        const numVal = parseFloat(inputNumber.value) || 0;
+        currentAction(textVal, numVal);
+    }
+    modalOverlay.classList.add('hidden');
+};
+
+// --- Кнопки ---
+window.addExpense = function(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    openModal(`Траты на "${cat.name}"`, false, true, (text, num) => {
+        if (num > 0) { cat.sum += num; saveState(); }
+    });
+};
+
+document.getElementById('add-income-btn').onclick = () => {
+    openModal('Сколько добавить?', false, true, (text, num) => {
+        if (num > 0) { state.income += num; saveState(); }
+    });
+};
+
+document.getElementById('subtract-income-btn').onclick = () => {
+    openModal('Сколько вычесть?', false, true, (text, num) => {
+        if (num > 0) { state.income -= num; saveState(); }
+    });
+};
+
+document.getElementById('add-goal-btn').onclick = () => {
+    if (state.goals.length >= 15) return tg.showAlert('Максимум 15 целей!');
+    openModal('Новая цель', true, true, (text, num) => {
+        if (!text || num <= 0) return;
+        state.goals.push({ id: Date.now(), title: text, target: num, saved: 0 });
+        saveState();
+    });
+};
+
+window.deleteGoal = function(id) {
+    if (confirm('Удалить эту цель? Деньги, отложенные на неё, сгорят.')) {
+        state.goals = state.goals.filter(g => g.id !== id);
+        saveState();
+    }
+};
+
+window.editGoal = function(id) {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal) return;
+    openModal('Редактировать цель', true, true, (text, num) => {
+        if (!text || num <= 0) return;
+        goal.title = text;
+        goal.target = num;
+        if (goal.saved > goal.target) goal.saved = goal.target;
+        saveState();
+    }, goal.title, goal.target);
+};
+
+window.addToGoal = function(id) {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal) return;
+    const remaining = goal.target - goal.saved;
+    openModal('Сколько отложить?', false, true, (text, num) => {
+        if (num > 0) {
+            if (num > remaining) {
+                goal.saved = goal.target;
+                tg.showAlert(`Цель заполнена! Отложено ${formatMoney(remaining)}.`);
+            } else {
+                goal.saved += num;
+            }
+            saveState();
+        }
+    });
+};
+
+// --- Настройки ---
+const petModalOverlay = document.getElementById('pet-modal-overlay');
+document.getElementById('open-pet-selector').onclick = () => petModalOverlay.classList.remove('hidden');
+document.getElementById('pet-modal-close').onclick = () => petModalOverlay.classList.add('hidden');
+document.querySelectorAll('.pet-select-btn').forEach(btn => {
+    btn.onclick = () => { state.currentPet = btn.getAttribute('data-pet'); saveState(); petModalOverlay.classList.add('hidden'); };
+});
+
+const themeModalOverlay = document.getElementById('theme-modal-overlay');
+document.getElementById('open-theme-selector').onclick = () => themeModalOverlay.classList.remove('hidden');
+document.getElementById('theme-modal-close').onclick = () => themeModalOverlay.classList.add('hidden');
+document.querySelectorAll('.theme-select-btn').forEach(btn => {
+    btn.onclick = () => { state.theme = btn.getAttribute('data-theme'); saveState(); themeModalOverlay.classList.add('hidden'); };
+});
+
+const styleModalOverlay = document.getElementById('style-modal-overlay');
+document.getElementById('open-style-selector').onclick = () => styleModalOverlay.classList.remove('hidden');
+document.getElementById('style-modal-close').onclick = () => styleModalOverlay.classList.add('hidden');
+document.querySelectorAll('.style-select-btn').forEach(btn => {
+    btn.onclick = () => { state.style = btn.getAttribute('data-style'); saveState(); styleModalOverlay.classList.add('hidden'); };
+});
+
+// Запуск
+loadState();
+window.addEventListener('load', () => {
+    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
+});
