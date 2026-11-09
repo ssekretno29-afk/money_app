@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Заставка -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">💸</div>
@@ -20,13 +19,11 @@
     </div>
 
     <div class="app-container">
-        <!-- Шапка -->
         <header>
             <div class="greeting">Привет, <span id="user-name">друг</span></div>
             <div class="date" id="current-date">Ноябрь 2026</div>
         </header>
 
-        <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="screen-home" class="screen active">
             <section class="goals-section">
                 <div class="section-header">
@@ -64,7 +61,6 @@
             </div>
         </main>
 
-        <!-- ОСТАЛЬНЫЕ ЭКРАНЫ -->
         <main id="screen-stats" class="screen hidden">
             <h2>Статистика</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появится статистика</p>
@@ -77,16 +73,8 @@
 
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
-            <div class="settings-card">
-                <h3>Выбери питомца</h3>
-                <div class="pet-selector">
-                    <div class="pet-option" data-pet="pet.gif">🐧 Пингвин</div>
-                    <div class="pet-option" data-pet="frog.gif">🐸 Лягушка</div>
-                    <div class="pet-option" data-pet="bee.gif">🐝 Пчела</div>
-                    <div class="pet-option" data-pet="dolphin.gif">🐬 Дельфин</div>
-                    <div class="pet-option" data-pet="elephant.gif">🐘 Слон</div>
-                </div>
-            </div>
+            <!-- Кнопка вызова выбора питомца -->
+            <button id="open-pet-selector" class="btn-outline" style="margin-top: 10px;">Сменить питомца 🐾</button>
         </main>
 
         <div class="bottom-spacer"></div>
@@ -99,6 +87,7 @@
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
+    <!-- Основное модальное окно для ввода цифр -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
@@ -107,6 +96,23 @@
             <div class="modal-buttons">
                 <button id="modal-cancel" class="btn-cancel">Отмена</button>
                 <button id="modal-save" class="btn-save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- НОВОЕ модальное окно для выбора питомца -->
+    <div id="pet-modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Выбери питомца</h3>
+            <div class="pet-grid">
+                <button class="pet-select-btn" data-pet="pet.gif">🐧 Пингвин</button>
+                <button class="pet-select-btn" data-pet="frog.gif">🐸 Лягушка</button>
+                <button class="pet-select-btn" data-pet="bee.gif">🐝 Пчела</button>
+                <button class="pet-select-btn" data-pet="dolphin.gif">🐬 Дельфин</button>
+                <button class="pet-select-btn" data-pet="elephant.gif">🐘 Слон</button>
+            </div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button id="pet-modal-close" class="btn-cancel" style="width: 100%;">Закрыть</button>
             </div>
         </div>
     </div>
