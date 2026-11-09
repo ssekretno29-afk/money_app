@@ -14,7 +14,8 @@ let state = {
     year: now.getFullYear(),
     income: 0,
     spent: 0,
-    goals: []
+    goals: [],
+    currentPet: 'pet.gif' // По умолчанию пингвин
 };
 
 function loadState() {
@@ -49,6 +50,12 @@ function updateUI() {
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-spent').textContent = formatMoney(state.spent);
 
+    // Ставим нужную картинку питомца
+    const petImg = document.getElementById('main-pet-img');
+    if (petImg.src !== state.currentPet) {
+        petImg.src = state.currentPet;
+    }
+
     // Рисуем цели
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
@@ -62,7 +69,6 @@ function updateUI() {
             ? `<div class="goal-completed">Цель достигнута! 🎉</div>`
             : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
 
-        // Рассчитываем остаток до цели для отображения
         const remainingToGoal = goal.target - actualSaved;
         const remainingText = isCompleted ? '' : `<div class="goal-remaining">Осталось собрать: ${formatMoney(remainingToGoal)}</div>`;
 
@@ -86,6 +92,15 @@ function updateUI() {
     });
 
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
+
+    // Подсвечиваем выбранного питомца в настройках
+    document.querySelectorAll('.pet-option').forEach(opt => {
+        if (opt.getAttribute('data-pet') === state.currentPet) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
 }
 
 function formatMoney(amount) {
@@ -167,7 +182,7 @@ document.getElementById('add-goal-btn').onclick = () => {
     });
 };
 
-// 3. Удалить цель (БЕЗ ВОЗВРАТА ДЕНЕГ)
+// 3. Удалить цель
 window.deleteGoal = function(id) {
     if (confirm('Удалить эту цель? Деньги, отложенные на неё, сгорят.')) {
         state.goals = state.goals.filter(g => g.id !== id);
@@ -183,7 +198,6 @@ window.editGoal = function(id) {
         if (!text || num <= 0) return;
         goal.title = text;
         goal.target = num;
-        // Если новая цель меньше уже накопленного, корректируем накопленное
         if (goal.saved > goal.target) goal.saved = goal.target;
         saveState();
     }, goal.title, goal.target);
@@ -208,6 +222,15 @@ window.addToGoal = function(id) {
         }
     });
 };
+
+// --- Смена питомца ---
+document.querySelectorAll('.pet-option').forEach(option => {
+    option.onclick = () => {
+        const petFile = option.getAttribute('data-pet');
+        state.currentPet = petFile;
+        saveState();
+    };
+});
 
 // Запуск
 loadState();
