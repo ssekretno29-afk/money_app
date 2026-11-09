@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-light style-purple">
+    <!-- Заставка -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">💸</div>
@@ -19,11 +20,13 @@
     </div>
 
     <div class="app-container">
+        <!-- Шапка -->
         <header>
             <div class="greeting">Привет, <span id="user-name">друг</span></div>
             <div class="date" id="current-date">Ноябрь 2026</div>
         </header>
 
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="screen-home" class="screen active">
             <section class="goals-section">
                 <div class="section-header">
@@ -61,14 +64,15 @@
             </div>
         </main>
 
+        <!-- ЭКРАН 2: ТРАТЫ -->
         <main id="screen-expenses" class="screen hidden">
             <h2>Траты</h2>
             <div class="categories-list" id="categories-list"></div>
         </main>
 
+        <!-- ЭКРАН 3: СТАТИСТИКА -->
         <main id="screen-stats" class="screen hidden">
             <h2>Статистика</h2>
-            
             <div class="chart-container">
                 <svg id="donut-chart" viewBox="0 0 36 36"></svg>
                 <div class="chart-center">
@@ -76,10 +80,10 @@
                     <span class="chart-label">Потрачено</span>
                 </div>
             </div>
-
             <div class="chart-legend" id="chart-legend"></div>
         </main>
 
+        <!-- ЭКРАН 4: НАСТРОЙКИ -->
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
             <div class="settings-list">
@@ -92,6 +96,7 @@
         <div class="bottom-spacer"></div>
     </div>
 
+    <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
         <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
@@ -99,12 +104,16 @@
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
-    <!-- Модалки -->
+    <!-- Основное модальное окно -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
             <input type="text" id="modal-input-text" placeholder="Название" class="hidden">
             <input type="number" id="modal-input-number" placeholder="Сумма (₽)" class="hidden">
+            
+            <!-- Текст ошибки (появляется, если сумма больше баланса) -->
+            <div id="modal-error-msg" class="error-text">Недостаточно средств!</div>
+            
             <div class="modal-buttons">
                 <button id="modal-cancel" class="btn-cancel">Отмена</button>
                 <button id="modal-save" class="btn-save">Сохранить</button>
@@ -112,6 +121,7 @@
         </div>
     </div>
 
+    <!-- Модалка питомца -->
     <div id="pet-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери питомца</h3>
@@ -128,6 +138,7 @@
         </div>
     </div>
 
+    <!-- Модалка темы -->
     <div id="theme-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери тему</h3>
@@ -141,6 +152,7 @@
         </div>
     </div>
 
+    <!-- Модалка стиля -->
     <div id="style-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери стиль</h3>
