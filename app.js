@@ -15,7 +15,7 @@ let state = {
     income: 0,
     spent: 0,
     goals: [],
-    currentPet: 'pet.gif' // По умолчанию пингвин
+    currentPet: 'pet.gif'
 };
 
 function loadState() {
@@ -24,7 +24,6 @@ function loadState() {
         state = JSON.parse(saved);
     }
     
-    // Сброс раз в месяц
     if (state.month !== now.getMonth() || state.year !== now.getFullYear()) {
         state.month = now.getMonth();
         state.year = now.getFullYear();
@@ -50,7 +49,7 @@ function updateUI() {
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-spent').textContent = formatMoney(state.spent);
 
-    // Ставим нужную картинку питомца
+    // Меняем картинку питомца
     const petImg = document.getElementById('main-pet-img');
     if (petImg.src !== state.currentPet) {
         petImg.src = state.currentPet;
@@ -93,12 +92,12 @@ function updateUI() {
 
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 
-    // Подсвечиваем выбранного питомца в настройках
-    document.querySelectorAll('.pet-option').forEach(opt => {
-        if (opt.getAttribute('data-pet') === state.currentPet) {
-            opt.classList.add('active');
+    // Подсвечиваем активную кнопку питомца в модалке
+    document.querySelectorAll('.pet-select-btn').forEach(btn => {
+        if (btn.getAttribute('data-pet') === state.currentPet) {
+            btn.classList.add('active');
         } else {
-            opt.classList.remove('active');
+            btn.classList.remove('active');
         }
     });
 }
@@ -123,6 +122,9 @@ navItems.forEach(item => {
 
 // --- Модалки ---
 const modalOverlay = document.getElementById('modal-overlay');
+const petModalOverlay = document.getElementById('pet-modal-overlay'); // Новое окно
+
+// Стандартная модалка (ввод чисел)
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
 const inputNumber = document.getElementById('modal-input-number');
@@ -151,28 +153,18 @@ btnSave.onclick = () => {
 };
 
 // --- Кнопки ---
-
-// 1. Добавление дохода
 document.getElementById('add-income-btn').onclick = () => {
     openModal('Сколько добавить?', false, true, (text, num) => {
-        if (num > 0) {
-            state.income += num;
-            saveState();
-        }
+        if (num > 0) { state.income += num; saveState(); }
     });
 };
 
-// 1.1. Вычитание дохода
 document.getElementById('subtract-income-btn').onclick = () => {
     openModal('Сколько вычесть?', false, true, (text, num) => {
-        if (num > 0) {
-            state.income -= num;
-            saveState();
-        }
+        if (num > 0) { state.income -= num; saveState(); }
     });
 };
 
-// 2. Новая цель
 document.getElementById('add-goal-btn').onclick = () => {
     if (state.goals.length >= 15) return tg.showAlert('Максимум 15 целей!');
     openModal('Новая цель', true, true, (text, num) => {
@@ -182,7 +174,6 @@ document.getElementById('add-goal-btn').onclick = () => {
     });
 };
 
-// 3. Удалить цель
 window.deleteGoal = function(id) {
     if (confirm('Удалить эту цель? Деньги, отложенные на неё, сгорят.')) {
         state.goals = state.goals.filter(g => g.id !== id);
@@ -190,7 +181,6 @@ window.deleteGoal = function(id) {
     }
 };
 
-// 4. Редактировать цель
 window.editGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
@@ -203,11 +193,9 @@ window.editGoal = function(id) {
     }, goal.title, goal.target);
 };
 
-// 5. Отложить на цель
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    
     const remaining = goal.target - goal.saved;
     
     openModal('Сколько отложить?', false, true, (text, num) => {
@@ -223,12 +211,24 @@ window.addToGoal = function(id) {
     });
 };
 
-// --- Смена питомца ---
-document.querySelectorAll('.pet-option').forEach(option => {
-    option.onclick = () => {
-        const petFile = option.getAttribute('data-pet');
+// --- Логика окна выбора питомца ---
+// Открыть окно
+document.getElementById('open-pet-selector').onclick = () => {
+    petModalOverlay.classList.remove('hidden');
+};
+
+// Закрыть окно
+document.getElementById('pet-modal-close').onclick = () => {
+    petModalOverlay.classList.add('hidden');
+};
+
+// Выбрать питомца
+document.querySelectorAll('.pet-select-btn').forEach(btn => {
+    btn.onclick = () => {
+        const petFile = btn.getAttribute('data-pet');
         state.currentPet = petFile;
         saveState();
+        petModalOverlay.classList.add('hidden'); // Закрываем после выбора
     };
 });
 
