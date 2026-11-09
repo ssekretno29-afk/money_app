@@ -54,7 +54,6 @@ function updateUI() {
     goalsList.innerHTML = '';
     
     state.goals.forEach(goal => {
-        // Защита от переполнения визуально
         const actualSaved = Math.min(goal.saved, goal.target);
         const percent = goal.target > 0 ? Math.min((actualSaved / goal.target) * 100, 100) : 0;
         const isCompleted = goal.saved >= goal.target;
@@ -62,6 +61,10 @@ function updateUI() {
         const actionButton = isCompleted 
             ? `<div class="goal-completed">Цель достигнута! 🎉</div>`
             : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
+
+        // Рассчитываем остаток до цели для отображения
+        const remainingToGoal = goal.target - actualSaved;
+        const remainingText = isCompleted ? '' : `<div class="goal-remaining">Осталось собрать: ${formatMoney(remainingToGoal)}</div>`;
 
         const card = document.createElement('div');
         card.className = 'goal-card';
@@ -76,6 +79,7 @@ function updateUI() {
                 <span class="goal-percent">${Math.round(percent)}%</span>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
+            ${remainingText}
             ${actionButton}
         `;
         goalsList.appendChild(card);
@@ -143,7 +147,7 @@ document.getElementById('add-income-btn').onclick = () => {
     });
 };
 
-// 1.1. Вычитание дохода (если ошиблись)
+// 1.1. Вычитание дохода
 document.getElementById('subtract-income-btn').onclick = () => {
     openModal('Сколько вычесть?', false, true, (text, num) => {
         if (num > 0) {
@@ -163,9 +167,9 @@ document.getElementById('add-goal-btn').onclick = () => {
     });
 };
 
-// 3. Удалить цель
+// 3. Удалить цель (БЕЗ ВОЗВРАТА ДЕНЕГ)
 window.deleteGoal = function(id) {
-    if (confirm('Удалить эту цель?')) {
+    if (confirm('Удалить эту цель? Деньги, отложенные на неё, сгорят.')) {
         state.goals = state.goals.filter(g => g.id !== id);
         saveState();
     }
@@ -185,7 +189,7 @@ window.editGoal = function(id) {
     }, goal.title, goal.target);
 };
 
-// 5. Отложить на цель (исправленный баг)
+// 5. Отложить на цель
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
@@ -194,14 +198,13 @@ window.addToGoal = function(id) {
     
     openModal('Сколько отложить?', false, true, (text, num) => {
         if (num > 0) {
-            // Если ввели больше, чем осталось, добавляем ровно столько, сколько нужно
             if (num > remaining) {
-                goal.saved = goal.target; // Ставим ровно цель
+                goal.saved = goal.target;
                 tg.showAlert(`Цель заполнена! Отложено ${formatMoney(remaining)}.`);
             } else {
                 goal.saved += num;
             }
-            saveState(); // Сохраняем уже правильные данные
+            saveState();
         }
     });
 };
