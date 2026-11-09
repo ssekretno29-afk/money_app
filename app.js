@@ -233,4 +233,28 @@ document.querySelectorAll('.pet-select-btn').forEach(btn => {
 const themeModalOverlay = document.getElementById('theme-modal-overlay');
 document.getElementById('open-theme-selector').onclick = () => themeModalOverlay.classList.remove('hidden');
 document.getElementById('theme-modal-close').onclick = () => themeModalOverlay.classList.add('hidden');
-document.querySelectorAll('.theme-select-btn').forEach
+document.querySelectorAll('.theme-select-btn').forEach(btn => {
+    btn.onclick = () => {
+        state.theme = btn.getAttribute('data-theme');
+        saveState();
+        themeModalOverlay.classList.add('hidden');
+    };
+});
+
+// 3. Стили
+const styleModalOverlay = document.getElementById('style-modal-overlay');
+document.getElementById('open-style-selector').onclick = () => styleModalOverlay.classList.remove('hidden');
+document.getElementById('style-modal-close').onclick = () => styleModalOverlay.classList.add('hidden');
+document.querySelectorAll('.style-select-btn').forEach(btn => {
+    btn.onclick = () => {
+        state.style = btn.getAttribute('data-style');
+        saveState();
+        styleModalOverlay.classList.add('hidden');
+    };
+});
+
+// Запуск
+loadState();
+window.addEventListener('load', () => {
+    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
+});
