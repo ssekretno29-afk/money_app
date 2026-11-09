@@ -161,12 +161,22 @@ body.theme-dark .btn-subtract-money { background: rgba(0, 0, 0, 0.2); border-col
 .pet-select-btn, .theme-select-btn, .style-select-btn { background: var(--bg-color); border: 2px solid transparent; padding: 15px 10px; border-radius: 16px; font-weight: 600; font-size: 15px; color: var(--text-main); cursor: pointer; transition: all 0.2s; text-align: center; }
 .pet-select-btn.active, .theme-select-btn.active, .style-select-btn.active { background: var(--purple-light); border-color: var(--purple-main); color: #1C1C1E; }
 
-.splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease, visibility 0.5s ease; }
+/* ИСПРАВЛЕННАЯ ЗАСТАВКА */
+.splash-screen { 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: #F9F6F0 !important; /* Принудительный светлый фон */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 9999; 
+    transition: opacity 0.5s ease, visibility 0.5s ease; 
+}
 .splash-screen.hidden { opacity: 0; visibility: hidden; }
 .splash-content { text-align: center; animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: scale(0.9); }
 .splash-logo { font-size: 80px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
-.splash-title { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; margin-bottom: 8px; }
-.splash-subtitle { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+.splash-title { font-size: 32px; font-weight: 800; color: #1C1C1E; letter-spacing: -1px; margin-bottom: 8px; }
+.splash-subtitle { font-size: 16px; color: #8E8E93; font-weight: 500; }
 
 /* Категории Трат */
 .categories-list { display: flex; flex-direction: column; gap: 10px; }
@@ -179,93 +189,21 @@ body.theme-dark .btn-subtract-money { background: rgba(0, 0, 0, 0.2); border-col
 .cat-add-btn:active { background: var(--purple-main); transform: scale(0.95); }
 
 /* --- СТАТИСТИКА (ДИАГРАММА) --- */
-.chart-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 30px auto;
-}
-#donut-chart {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-}
-/* Настройки колец */
-#donut-chart circle {
-    fill: none;
-    stroke-width: 6;
-    transition: stroke-dasharray 0.5s ease;
-}
-.chart-center {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.chart-total {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--text-main);
-}
-.chart-label {
-    font-size: 12px;
-    color: var(--text-muted);
-}
+.chart-container { position: relative; width: 200px; height: 200px; margin: 0 auto 30px auto; }
+#donut-chart { width: 100%; height: 100%; transform: rotate(-90deg); }
+#donut-chart circle { fill: none; stroke-width: 6; transition: stroke-dasharray 0.5s ease; }
+.chart-center { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.chart-total { font-size: 22px; font-weight: 800; color: var(--text-main); }
+.chart-label { font-size: 12px; color: var(--text-muted); }
 
 /* Легенда диаграммы */
-.chart-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: var(--card-shadow);
-}
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-}
-.legend-color {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-}
-.legend-text {
-    flex: 1;
-    color: var(--text-main);
-    font-weight: 600;
-}
-.legend-percent {
-    font-weight: 800;
-    color: var(--text-muted);
-}
-
-/* Идеальный круг, если категория одна (100%) */
-#donut-chart .full-circle {
-    fill: none;
-    stroke-width: 6;
-}
+.chart-legend { display: flex; flex-direction: column; gap: 10px; background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: var(--card-shadow); }
+.legend-item { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.legend-color { width: 14px; height: 14px; border-radius: 50%; }
+.legend-text { flex: 1; color: var(--text-main); font-weight: 600; }
+.legend-percent { font-weight: 800; color: var(--text-muted); }
 
 /* Стили для ошибки ввода */
-.input-error {
-    border-color: #FF4C4C !important;
-    color: #FF4C4C !important;
-    background-color: rgba(255, 76, 76, 0.05) !important;
-}
-.error-text {
-    color: #FF4C4C;
-    font-size: 12px;
-    margin-top: -8px;
-    margin-bottom: 10px;
-    display: none;
-    font-weight: 600;
-}
-.btn-save:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+.input-error { border-color: #FF4C4C !important; color: #FF4C4C !important; background-color: rgba(255, 76, 76, 0.05) !important; }
+.error-text { color: #FF4C4C; font-size: 12px; margin-top: -8px; margin-bottom: 10px; display: none; font-weight: 600; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
