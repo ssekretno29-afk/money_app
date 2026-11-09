@@ -15,7 +15,9 @@ let state = {
     income: 0,
     spent: 0,
     goals: [],
-    currentPet: 'pet.gif'
+    currentPet: 'pet.gif',
+    theme: 'theme-light',
+    style: 'style-purple'
 };
 
 function loadState() {
@@ -42,6 +44,10 @@ function saveState() {
 
 // --- Обновление UI ---
 function updateUI() {
+    // 1. Применяем тему и стиль (классы на body)
+    document.body.className = `${state.theme} ${state.style}`;
+
+    // 2. Обновляем цифры
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
     const remainder = state.income - state.spent - totalSavedInGoals;
 
@@ -49,13 +55,13 @@ function updateUI() {
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-spent').textContent = formatMoney(state.spent);
 
-    // Меняем картинку питомца
+    // 3. Меняем картинку питомца
     const petImg = document.getElementById('main-pet-img');
     if (petImg.src !== state.currentPet) {
         petImg.src = state.currentPet;
     }
 
-    // Рисуем цели
+    // 4. Рисуем цели
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
     
@@ -92,13 +98,15 @@ function updateUI() {
 
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 
-    // Подсвечиваем активную кнопку питомца в модалке
+    // 5. Подсвечиваем активные кнопки в модалках
     document.querySelectorAll('.pet-select-btn').forEach(btn => {
-        if (btn.getAttribute('data-pet') === state.currentPet) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+        btn.classList.toggle('active', btn.getAttribute('data-pet') === state.currentPet);
+    });
+    document.querySelectorAll('.theme-select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === state.theme);
+    });
+    document.querySelectorAll('.style-select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-style') === state.style);
     });
 }
 
@@ -120,11 +128,8 @@ navItems.forEach(item => {
     };
 });
 
-// --- Модалки ---
+// --- Базовые модалки (Ввод данных) ---
 const modalOverlay = document.getElementById('modal-overlay');
-const petModalOverlay = document.getElementById('pet-modal-overlay'); // Новое окно
-
-// Стандартная модалка (ввод чисел)
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
 const inputNumber = document.getElementById('modal-input-number');
@@ -152,7 +157,7 @@ btnSave.onclick = () => {
     modalOverlay.classList.add('hidden');
 };
 
-// --- Кнопки ---
+// --- Кнопки доходов и целей ---
 document.getElementById('add-income-btn').onclick = () => {
     openModal('Сколько добавить?', false, true, (text, num) => {
         if (num > 0) { state.income += num; saveState(); }
@@ -211,29 +216,21 @@ window.addToGoal = function(id) {
     });
 };
 
-// --- Логика окна выбора питомца ---
-// Открыть окно
-document.getElementById('open-pet-selector').onclick = () => {
-    petModalOverlay.classList.remove('hidden');
-};
-
-// Закрыть окно
-document.getElementById('pet-modal-close').onclick = () => {
-    petModalOverlay.classList.add('hidden');
-};
-
-// Выбрать питомца
+// --- Модалки настроек ---
+// 1. Питомцы
+const petModalOverlay = document.getElementById('pet-modal-overlay');
+document.getElementById('open-pet-selector').onclick = () => petModalOverlay.classList.remove('hidden');
+document.getElementById('pet-modal-close').onclick = () => petModalOverlay.classList.add('hidden');
 document.querySelectorAll('.pet-select-btn').forEach(btn => {
     btn.onclick = () => {
-        const petFile = btn.getAttribute('data-pet');
-        state.currentPet = petFile;
+        state.currentPet = btn.getAttribute('data-pet');
         saveState();
-        petModalOverlay.classList.add('hidden'); // Закрываем после выбора
+        petModalOverlay.classList.add('hidden');
     };
 });
 
-// Запуск
-loadState();
-window.addEventListener('load', () => {
-    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
-});
+// 2. Темы
+const themeModalOverlay = document.getElementById('theme-modal-overlay');
+document.getElementById('open-theme-selector').onclick = () => themeModalOverlay.classList.remove('hidden');
+document.getElementById('theme-modal-close').onclick = () => themeModalOverlay.classList.add('hidden');
+document.querySelectorAll('.theme-select-btn').forEach
