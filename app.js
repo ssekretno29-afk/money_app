@@ -135,7 +135,7 @@ function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
 
-// --- Отрисовка диаграммы (ИСПРАВЛЕННАЯ) ---
+// --- Отрисовка диаграммы ---
 function updateChart() {
     const totalSpent = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
     const chart = document.getElementById('donut-chart');
@@ -149,7 +149,6 @@ function updateChart() {
 
     let currentOffset = 0;
     const circumference = 2 * Math.PI * 15.9155;
-    
     const activeCategories = state.categories.filter(c => c.sum > 0);
 
     activeCategories.forEach((cat, index) => {
@@ -157,7 +156,6 @@ function updateChart() {
         const color = CHART_COLORS[index % CHART_COLORS.length];
 
         if (activeCategories.length === 1) {
-            // Если категория всего одна (100%), рисуем идеальное сплошное кольцо
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             circle.setAttribute('cx', '18');
             circle.setAttribute('cy', '18');
@@ -166,7 +164,6 @@ function updateChart() {
             circle.setAttribute('class', 'full-circle');
             chart.appendChild(circle);
         } else {
-            // Если несколько, рисуем сегменты
             const dashArray = (percent / 100) * circumference;
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             circle.setAttribute('cx', '18');
@@ -179,7 +176,6 @@ function updateChart() {
             currentOffset += dashArray;
         }
 
-        // Добавляем в легенду
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         legendItem.innerHTML = `
@@ -206,7 +202,7 @@ navItems.forEach(item => {
     };
 });
 
-// --- Модалки ---
+// --- МОДАЛЬНЫЕ ОКНА И ПРОВЕРКА ---
 const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
@@ -215,7 +211,7 @@ const btnCancel = document.getElementById('modal-cancel');
 const btnSave = document.getElementById('modal-save');
 let currentAction = null;
 
-function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '') {
+function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '', maxLimit = null) {
     modalTitle.textContent = title;
     inputText.classList.toggle('hidden', !showText);
     inputNumber.classList.toggle('hidden', !showNumber);
@@ -223,6 +219,38 @@ function openModal(title, showText, showNumber, action, initialText = '', initia
     inputNumber.value = initialNumber;
     currentAction = action;
     modalOverlay.classList.remove('hidden');
+
+    setupValidation(maxLimit);
+}
+
+function setupValidation(maxLimit) {
+    const inputEl = document.getElementById('modal-input-number');
+    const saveBtn = document.getElementById('modal-save');
+    const errorMsg = document.getElementById('modal-error-msg');
+
+    inputEl.classList.remove('input-error');
+    errorMsg.style.display = 'none';
+    saveBtn.disabled = false;
+
+    if (maxLimit === null) {
+        inputEl.oninput = null; 
+        return;
+    }
+
+    inputEl.oninput = () => {
+        const val = parseFloat(inputEl.value) || 0;
+        
+        if (val > maxLimit) {
+            inputEl.classList.add('input-error');
+            errorMsg.textContent = `Максимум доступно: ${formatMoney(maxLimit)}`;
+            errorMsg.style.display = 'block';
+            saveBtn.disabled = true;
+        } else {
+            inputEl.classList.remove('input-error');
+            errorMsg.style.display = 'none';
+            saveBtn.disabled = false;
+        }
+    };
 }
 
 btnCancel.onclick = () => { modalOverlay.classList.add('hidden'); currentAction = null; };
@@ -239,9 +267,14 @@ btnSave.onclick = () => {
 window.addExpense = function(catId) {
     const cat = state.categories.find(c => c.id === catId);
     if (!cat) return;
+    
+    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
+    const totalSpentInCategories = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
+    const currentBalance = state.income - totalSpentInCategories - totalSavedInGoals;
+
     openModal(`Траты на "${cat.name}"`, false, true, (text, num) => {
         if (num > 0) { cat.sum += num; saveState(); }
-    });
+    }, '', '', currentBalance);
 };
 
 document.getElementById('add-income-btn').onclick = () => {
@@ -287,18 +320,24 @@ window.editGoal = function(id) {
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    const remaining = goal.target - goal.saved;
+
+    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
+    const totalSpentInCategories = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
+    const currentBalance = state.income - totalSpentInCategories - totalSavedInGoals;
+
+    const remainingToGoal = goal.target - goal.saved;
+    const maxAllowed = Math.min(remainingToGoal, currentBalance);
+    
     openModal('Сколько отложить?', false, true, (text, num) => {
         if (num > 0) {
-            if (num > remaining) {
-                goal.saved = goal.target;
-                tg.showAlert(`Цель заполнена! Отложено ${formatMoney(remaining)}.`);
-            } else {
-                goal.saved += num;
-            }
+            goal.saved += num;
             saveState();
+            if (goal.saved >= goal.target) {
+                goal.saved = goal.target;
+                saveState();
+            }
         }
-    });
+    }, '', '', maxAllowed);
 };
 
 // --- Настройки ---
