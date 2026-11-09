@@ -87,7 +87,7 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 /* Кнопки */
 .btn-outline { width: 100%; background: var(--white); color: var(--purple-dark); border: 1.5px dashed var(--purple-main); padding: 14px; border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 0; margin-bottom: 20px; }
 
-/* Карточка бюджета (как на скриншоте) */
+/* Карточка бюджета */
 .money-card {
     background: var(--purple-light);
     border-radius: 28px;
@@ -97,8 +97,6 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
     position: relative;
     overflow: hidden;
 }
-
-/* Декоративный круг внутри карточки */
 .money-card::before {
     content: '';
     position: absolute;
@@ -109,7 +107,6 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
     background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
 }
-
 .card-header { font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
 .card-amount { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
 
@@ -118,21 +115,42 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 .detail-label { font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px; }
 .detail-value { font-size: 16px; font-weight: 700; }
 
-.btn-add-money {
-    background: var(--white);
-    color: var(--purple-dark);
-    border: none;
+/* Контейнер для кнопок дохода */
+.income-buttons {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Общая база для обеих кнопок */
+.btn-add-money, .btn-subtract-money {
+    flex: 1; /* Одинаковая ширина */
     padding: 14px;
     border-radius: 14px;
     font-weight: 800;
     font-size: 15px;
-    width: 100%;
     cursor: pointer;
     transition: transform 0.1s;
-    position: relative;
-    z-index: 1;
+    border: none;
 }
-.btn-add-money:active { transform: scale(0.98); }
+
+.btn-add-money:active, .btn-subtract-money:active {
+    transform: scale(0.98);
+}
+
+/* Стиль кнопки "Добавить" (белая) */
+.btn-add-money {
+    background: var(--white);
+    color: var(--purple-dark);
+}
+
+/* Стиль кнопки "Вычесть" (полупрозрачная) */
+.btn-subtract-money {
+    background: rgba(255, 255, 255, 0.25);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
 
 /* Модальные окна */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
@@ -157,39 +175,3 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 
 @keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-
-/* Контейнер для кнопок дохода */
-.income-buttons {
-    display: flex;
-    gap: 10px;
-    position: relative;
-    z-index: 1;
-}
-
-.btn-add-money {
-    flex: 2; /* Кнопка добавления шире */
-    background: var(--white);
-    color: var(--purple-dark);
-    border: none;
-    padding: 14px;
-    border-radius: 14px;
-    font-weight: 800;
-    font-size: 15px;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-.btn-add-money:active { transform: scale(0.98); }
-
-.btn-subtract-money {
-    flex: 1; /* Кнопка вычитания уже */
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--white);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    padding: 14px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-.btn-subtract-money:active { transform: scale(0.98); }
