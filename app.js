@@ -135,7 +135,7 @@ function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
 
-// --- Отрисовка диаграммы (Исправленная) ---
+// --- Отрисовка диаграммы (ИСПРАВЛЕННАЯ) ---
 function updateChart() {
     const totalSpent = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
     const chart = document.getElementById('donut-chart');
@@ -150,30 +150,36 @@ function updateChart() {
     let currentOffset = 0;
     const circumference = 2 * Math.PI * 15.9155;
     
-    // Оставляем только те категории, где есть траты
     const activeCategories = state.categories.filter(c => c.sum > 0);
 
     activeCategories.forEach((cat, index) => {
         const percent = (cat.sum / totalSpent) * 100;
-        const dashArray = (percent / 100) * circumference;
         const color = CHART_COLORS[index % CHART_COLORS.length];
 
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', '18');
-        circle.setAttribute('cy', '18');
-        circle.setAttribute('r', '15.9155');
-        circle.setAttribute('stroke', color);
-        circle.setAttribute('stroke-dasharray', `${dashArray} ${circumference - dashArray}`);
-        circle.setAttribute('stroke-dashoffset', -currentOffset);
-        
-        // Чтобы круг был идеальным (без восьмиугольных краев при 100%), 
-        // делаем обводку с закругленными концами
-        circle.setAttribute('stroke-linecap', 'round'); 
-        
-        chart.appendChild(circle);
-        currentOffset += dashArray;
+        if (activeCategories.length === 1) {
+            // Если категория всего одна (100%), рисуем идеальное сплошное кольцо
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', '18');
+            circle.setAttribute('cy', '18');
+            circle.setAttribute('r', '15.9155');
+            circle.setAttribute('stroke', color);
+            circle.setAttribute('class', 'full-circle');
+            chart.appendChild(circle);
+        } else {
+            // Если несколько, рисуем сегменты
+            const dashArray = (percent / 100) * circumference;
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', '18');
+            circle.setAttribute('cy', '18');
+            circle.setAttribute('r', '15.9155');
+            circle.setAttribute('stroke', color);
+            circle.setAttribute('stroke-dasharray', `${dashArray} ${circumference - dashArray}`);
+            circle.setAttribute('stroke-dashoffset', -currentOffset);
+            chart.appendChild(circle);
+            currentOffset += dashArray;
+        }
 
-        // Легенда
+        // Добавляем в легенду
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         legendItem.innerHTML = `
