@@ -250,3 +250,22 @@ body.theme-dark .btn-subtract-money { background: rgba(0, 0, 0, 0.2); border-col
     fill: none;
     stroke-width: 6;
 }
+
+/* Стили для ошибки ввода */
+.input-error {
+    border-color: #FF4C4C !important;
+    color: #FF4C4C !important;
+    background-color: rgba(255, 76, 76, 0.05) !important;
+}
+.error-text {
+    color: #FF4C4C;
+    font-size: 12px;
+    margin-top: -8px;
+    margin-bottom: 10px;
+    display: none;
+    font-weight: 600;
+}
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
