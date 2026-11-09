@@ -37,30 +37,40 @@
                 <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
             </section>
 
-            <!-- Копилка дохода -->
+            <!-- Карточка бюджета (как на скрине) -->
             <section class="money-card">
-                <div class="card-label">Доход в этом месяце</div>
-                <!-- Сюда будем выводить сумму -->
-                <div class="card-amount" id="display-income">0 ₽</div>
+                <div class="card-header">
+                    <span class="icon">💳</span> Осталось в этом месяце
+                </div>
+                <div class="card-amount" id="display-remainder">0 ₽</div>
                 
-                <!-- Кнопка добавления денег в копилку -->
+                <div class="money-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Доход</span>
+                        <span class="detail-value" id="display-income">0 ₽</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Потрачено</span>
+                        <span class="detail-value" id="display-spent">0 ₽</span>
+                    </div>
+                </div>
+
+                <!-- Кнопка добавления/вычитания дохода -->
                 <button id="add-income-btn" class="btn-add-money">+ Добавить деньги</button>
             </section>
         </main>
 
-        <!-- ЭКРАН 2: СТАТИСТИКА (Пустой) -->
+        <!-- ОСТАЛЬНЫЕ ЭКРАНЫ (Пустые заглушки) -->
         <main id="screen-stats" class="screen hidden">
             <h2>Статистика</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появится статистика</p>
         </main>
 
-        <!-- ЭКРАН 3: ТРАТЫ (Пустой) -->
         <main id="screen-expenses" class="screen hidden">
             <h2>Траты</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся категории трат</p>
         </main>
 
-        <!-- ЭКРАН 4: НАСТРОЙКИ (Пустой) -->
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся настройки</p>
@@ -71,17 +81,13 @@
 
     <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
-        <!-- Домик -->
         <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
-        <!-- Статистика -->
         <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
-        <!-- Траты -->
         <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
-        <!-- Настройки -->
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
-    <!-- Модальные окна (всплывающие окошки ввода) -->
+    <!-- Модальные окна -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
