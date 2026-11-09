@@ -261,5 +261,69 @@ body.theme-dark .btn-subtract-money { background: rgba(0, 0, 0, 0.2); border-col
 .splash-title { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; margin-bottom: 8px; }
 .splash-subtitle { font-size: 16px; color: var(--text-muted); font-weight: 500; }
 
+/* --- СТИЛИ ДЛЯ КАТЕГОРИЙ ТРАТ --- */
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 15px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cat-icon-box {
+    width: 50px;
+    height: 50px;
+    background: var(--bg-color);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.cat-info-box {
+    flex: 1;
+}
+
+.cat-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.cat-sum {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.cat-add-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    color: var(--white);
+    border: none;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    padding-bottom: 4px;
+}
+
+.cat-add-btn:active {
+    background: var(--purple-main);
+    transform: scale(0.95);
+}
 @keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
