@@ -165,11 +165,9 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
     margin-bottom: 20px;
 }
 .pixel-pet {
-    width: 200px; /* Увеличили размер */
+    width: 200px; 
     image-rendering: pixelated;
     animation: pet-bounce 2s infinite ease-in-out;
-    
-    /* Делаем из серого квадрата аккуратную карточку */
     border-radius: 24px; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
     background-color: #EAEAEA; 
@@ -177,6 +175,38 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 @keyframes pet-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
+}
+
+/* Настройки (Выбор питомца) */
+.settings-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+}
+.settings-card h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--text-main);
+}
+.pet-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pet-option {
+    background: var(--bg-color);
+    padding: 15px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background 0.2s;
+    border: 2px solid transparent;
+}
+.pet-option:hover, .pet-option.active {
+    background: var(--purple-light);
+    border-color: var(--purple-main);
 }
 
 /* Заставка */
