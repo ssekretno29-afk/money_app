@@ -9,7 +9,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<!-- Классы темы и стиля будут добавляться сюда через JS -->
 <body class="theme-light style-purple">
     <!-- Заставка -->
     <div id="splash-screen" class="splash-screen">
@@ -65,17 +64,21 @@
             </div>
         </main>
 
-        <!-- ОСТАЛЬНЫЕ ЭКРАНЫ -->
+        <!-- ЭКРАН 2: ТРАТЫ -->
+        <main id="screen-expenses" class="screen hidden">
+            <h2>Траты</h2>
+            <div class="categories-list" id="categories-list">
+                <!-- Категории будут генерироваться через JS -->
+            </div>
+        </main>
+
+        <!-- ЭКРАН 3: СТАТИСТИКА -->
         <main id="screen-stats" class="screen hidden">
             <h2>Статистика</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появится статистика</p>
         </main>
 
-        <main id="screen-expenses" class="screen hidden">
-            <h2>Траты</h2>
-            <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся категории трат</p>
-        </main>
-
+        <!-- ЭКРАН 4: НАСТРОЙКИ -->
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
             <div class="settings-list">
@@ -88,15 +91,15 @@
         <div class="bottom-spacer"></div>
     </div>
 
-    <!-- Нижнее меню навигации -->
+    <!-- Нижнее меню навигации (Статистика и Траты поменялись местами) -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
-        <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
         <div class="nav-item" data-target="screen-expenses"><span class="nav-icon">💲</span></div>
+        <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
-    <!-- Основное модальное окно для ввода цифр -->
+    <!-- Модалка ввода -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
@@ -109,7 +112,7 @@
         </div>
     </div>
 
-    <!-- Модалка выбора питомца -->
+    <!-- Модалка питомца -->
     <div id="pet-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери питомца</h3>
@@ -126,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Модалка выбора темы -->
+    <!-- Модалка темы -->
     <div id="theme-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери тему</h3>
@@ -140,7 +143,7 @@
         </div>
     </div>
 
-    <!-- Модалка выбора стиля кнопок -->
+    <!-- Модалка стиля -->
     <div id="style-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Выбери стиль</h3>
