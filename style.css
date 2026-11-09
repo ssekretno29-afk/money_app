@@ -22,7 +22,7 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     padding: 20px;
-    padding-bottom: 90px; /* Отступ для меню */
+    padding-bottom: 90px;
     overflow-x: hidden;
 }
 
@@ -70,10 +70,10 @@ header { margin-bottom: 25px; padding: 0 5px; }
 h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 700; }
 .badge { background: var(--purple-light); color: var(--purple-dark); font-size: 12px; padding: 2px 8px; border-radius: 10px; }
 
-/* Карточки целей */
+/* Цели */
 .goals-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
 .goal-card { background: var(--white); border-radius: 20px; padding: 16px; box-shadow: var(--card-shadow); position: relative; }
-.goal-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; padding-right: 20px; }
+.goal-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; padding-right: 40px; }
 .goal-sums { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
 .goal-percent { color: var(--purple-dark); font-weight: 700; }
 .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
@@ -81,39 +81,58 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 .goal-btn-add { margin-top: 12px; width: 100%; background: var(--purple-light); color: var(--white); border: none; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; }
 .goal-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; align-items: center; }
 .delete-goal { background: none; border: none; color: var(--danger); font-size: 20px; cursor: pointer; font-weight: bold; line-height: 1; padding: 0; }
+.edit-goal { background: none; border: none; font-size: 16px; cursor: pointer; opacity: 0.7; padding: 0; }
 .goal-completed { text-align: center; background: #E8F5E9; color: #2E7D32; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 12px; }
 
 /* Кнопки */
 .btn-outline { width: 100%; background: var(--white); color: var(--purple-dark); border: 1.5px dashed var(--purple-main); padding: 14px; border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 0; margin-bottom: 20px; }
 
-/* Блок с доходом (копилка) */
+/* Карточка бюджета (как на скриншоте) */
 .money-card {
     background: var(--purple-light);
-    border-radius: 24px;
+    border-radius: 28px;
     padding: 24px;
     color: var(--white);
     box-shadow: 0 8px 25px rgba(167, 139, 250, 0.3);
-    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
-.card-label { font-size: 15px; opacity: 0.9; margin-bottom: 10px; }
-.card-amount { font-size: 42px; font-weight: 800; margin: 0 0 20px 0; letter-spacing: -1px; }
+
+/* Декоративный круг внутри карточки */
+.money-card::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.card-header { font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.card-amount { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
+
+.money-details { display: flex; gap: 10px; margin-bottom: 20px; position: relative; z-index: 1; }
+.detail-item { flex: 1; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); padding: 12px 15px; border-radius: 16px; }
+.detail-label { font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px; }
+.detail-value { font-size: 16px; font-weight: 700; }
 
 .btn-add-money {
     background: var(--white);
     color: var(--purple-dark);
     border: none;
-    padding: 16px;
-    border-radius: 16px;
+    padding: 14px;
+    border-radius: 14px;
     font-weight: 800;
-    font-size: 16px;
+    font-size: 15px;
     width: 100%;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     transition: transform 0.1s;
+    position: relative;
+    z-index: 1;
 }
-.btn-add-money:active {
-    transform: scale(0.98);
-}
+.btn-add-money:active { transform: scale(0.98); }
 
 /* Модальные окна */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
