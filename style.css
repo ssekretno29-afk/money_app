@@ -83,6 +83,7 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 .delete-goal { background: none; border: none; color: var(--danger); font-size: 20px; cursor: pointer; font-weight: bold; line-height: 1; padding: 0; }
 .edit-goal { background: none; border: none; font-size: 16px; cursor: pointer; opacity: 0.7; padding: 0; }
 .goal-completed { text-align: center; background: #E8F5E9; color: #2E7D32; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 12px; }
+.goal-remaining { font-size: 12px; color: var(--text-muted); margin-top: 8px; margin-bottom: 8px; text-align: center; }
 
 /* Кнопки */
 .btn-outline { width: 100%; background: var(--white); color: var(--purple-dark); border: 1.5px dashed var(--purple-main); padding: 14px; border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 0; margin-bottom: 20px; }
@@ -125,7 +126,7 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 
 /* Общая база для обеих кнопок */
 .btn-add-money, .btn-subtract-money {
-    flex: 1; /* Одинаковая ширина */
+    flex: 1;
     padding: 14px;
     border-radius: 14px;
     font-weight: 800;
@@ -135,22 +136,13 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
     border: none;
 }
 
-.btn-add-money:active, .btn-subtract-money:active {
-    transform: scale(0.98);
-}
+.btn-add-money:active, .btn-subtract-money:active { transform: scale(0.98); }
 
 /* Стиль кнопки "Добавить" (белая) */
-.btn-add-money {
-    background: var(--white);
-    color: var(--purple-dark);
-}
+.btn-add-money { background: var(--white); color: var(--purple-dark); }
 
 /* Стиль кнопки "Вычесть" (полупрозрачная) */
-.btn-subtract-money {
-    background: rgba(255, 255, 255, 0.25);
-    color: var(--white);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}
+.btn-subtract-money { background: rgba(255, 255, 255, 0.25); color: var(--white); border: 1px solid rgba(255, 255, 255, 0.4); }
 
 /* Модальные окна */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
@@ -164,6 +156,23 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 .modal-buttons button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; }
 .btn-cancel { background: #f0f0f0; color: var(--text-main); }
 .btn-save { background: var(--purple-main); color: var(--white); }
+
+/* Пиксельный зверек */
+.pixel-pet-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+.pixel-pet {
+    width: 120px;
+    image-rendering: pixelated;
+    animation: pet-bounce 2s infinite ease-in-out;
+}
+@keyframes pet-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
 
 /* Заставка */
 .splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease, visibility 0.5s ease; }
