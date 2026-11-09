@@ -28,7 +28,6 @@
 
         <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="screen-home" class="screen active">
-            <!-- Мои цели -->
             <section class="goals-section">
                 <div class="section-header">
                     <h2>Мои цели <span id="goals-count" class="badge">0/15</span></h2>
@@ -37,7 +36,6 @@
                 <button id="add-goal-btn" class="btn-outline">+ Добавить цель</button>
             </section>
 
-            <!-- Карточка бюджета -->
             <section class="money-card">
                 <div class="card-header">
                     <span class="icon">💳</span> Осталось в этом месяце
@@ -55,20 +53,18 @@
                     </div>
                 </div>
 
-                <!-- Кнопки управления доходом -->
                 <div class="income-buttons">
                     <button id="add-income-btn" class="btn-add-money">+ Добавить</button>
                     <button id="subtract-income-btn" class="btn-subtract-money">− Вычесть</button>
                 </div>
             </section>
 
-            <!-- Пиксельный зверек -->
             <div class="pixel-pet-container">
-                <img src="pet.gif" alt="Питомец" class="pixel-pet">
+                <img id="main-pet-img" src="pet.gif" alt="Питомец" class="pixel-pet">
             </div>
         </main>
 
-        <!-- ОСТАЛЬНЫЕ ЭКРАНЫ (Заглушки) -->
+        <!-- ОСТАЛЬНЫЕ ЭКРАНЫ -->
         <main id="screen-stats" class="screen hidden">
             <h2>Статистика</h2>
             <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появится статистика</p>
@@ -81,13 +77,21 @@
 
         <main id="screen-settings" class="screen hidden">
             <h2>Настройки</h2>
-            <p style="color: gray; text-align: center; margin-top: 50px;">Скоро здесь появятся настройки</p>
+            <div class="settings-card">
+                <h3>Выбери питомца</h3>
+                <div class="pet-selector">
+                    <div class="pet-option" data-pet="pet.gif">🐧 Пингвин</div>
+                    <div class="pet-option" data-pet="frog.gif">🐸 Лягушка</div>
+                    <div class="pet-option" data-pet="bee.gif">🐝 Пчела</div>
+                    <div class="pet-option" data-pet="dolphin.gif">🐬 Дельфин</div>
+                    <div class="pet-option" data-pet="elephant.gif">🐘 Слон</div>
+                </div>
+            </div>
         </main>
 
         <div class="bottom-spacer"></div>
     </div>
 
-    <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-target="screen-home"><span class="nav-icon">🏠</span></div>
         <div class="nav-item" data-target="screen-stats"><span class="nav-icon">📊</span></div>
@@ -95,7 +99,6 @@
         <div class="nav-item" data-target="screen-settings"><span class="nav-icon">⚙️</span></div>
     </nav>
 
-    <!-- Модальные окна -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="modal-title">Заголовок</h3>
