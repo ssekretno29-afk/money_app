@@ -18,7 +18,6 @@ const DEFAULT_CATEGORIES = [
     { id: 'other', name: 'Прочее', icon: '📦', sum: 0 }
 ];
 
-// Цвета для диаграммы
 const CHART_COLORS = ['#FF9B9B', '#B39DFF', '#85C1E9', '#F5B041', '#58D68D', '#EC7063', '#AAB7B8'];
 
 let state = {
@@ -121,7 +120,7 @@ function updateUI() {
         catList.appendChild(div);
     });
 
-    // СТАТИСТИКА (Диаграмма)
+    // Статистика
     if (!document.getElementById('screen-stats').classList.contains('hidden')) {
         updateChart();
     }
@@ -136,7 +135,7 @@ function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
 
-// --- Отрисовка диаграммы ---
+// --- Отрисовка диаграммы (Исправленная) ---
 function updateChart() {
     const totalSpent = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
     const chart = document.getElementById('donut-chart');
@@ -149,16 +148,16 @@ function updateChart() {
     if (totalSpent === 0) return;
 
     let currentOffset = 0;
-    const circumference = 2 * Math.PI * 15.9155; // Длина окружности
+    const circumference = 2 * Math.PI * 15.9155;
+    
+    // Оставляем только те категории, где есть траты
+    const activeCategories = state.categories.filter(c => c.sum > 0);
 
-    state.categories.forEach((cat, index) => {
-        if (cat.sum === 0) return; // Пропускаем пустые категории
-
+    activeCategories.forEach((cat, index) => {
         const percent = (cat.sum / totalSpent) * 100;
         const dashArray = (percent / 100) * circumference;
         const color = CHART_COLORS[index % CHART_COLORS.length];
 
-        // Рисуем кусочек круга
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '18');
         circle.setAttribute('cy', '18');
@@ -166,11 +165,15 @@ function updateChart() {
         circle.setAttribute('stroke', color);
         circle.setAttribute('stroke-dasharray', `${dashArray} ${circumference - dashArray}`);
         circle.setAttribute('stroke-dashoffset', -currentOffset);
-        chart.appendChild(circle);
         
+        // Чтобы круг был идеальным (без восьмиугольных краев при 100%), 
+        // делаем обводку с закругленными концами
+        circle.setAttribute('stroke-linecap', 'round'); 
+        
+        chart.appendChild(circle);
         currentOffset += dashArray;
 
-        // Добавляем в легенду
+        // Легенда
         const legendItem = document.createElement('div');
         legendItem.className = 'legend-item';
         legendItem.innerHTML = `
@@ -193,7 +196,6 @@ navItems.forEach(item => {
         item.classList.add('active');
         const targetId = item.getAttribute('data-target');
         document.getElementById(targetId).classList.remove('hidden');
-        // Если открыли статистику, обновляем график
         if (targetId === 'screen-stats') updateChart();
     };
 });
