@@ -157,3 +157,39 @@ h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; g
 
 @keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+
+/* Контейнер для кнопок дохода */
+.income-buttons {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-add-money {
+    flex: 2; /* Кнопка добавления шире */
+    background: var(--white);
+    color: var(--purple-dark);
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.btn-add-money:active { transform: scale(0.98); }
+
+.btn-subtract-money {
+    flex: 1; /* Кнопка вычитания уже */
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.btn-subtract-money:active { transform: scale(0.98); }
