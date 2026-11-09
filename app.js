@@ -1,31 +1,41 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// Получаем имя
 const userName = tg.initDataUnsafe?.user?.first_name || "друг";
 document.getElementById('user-name').textContent = userName;
 
-// Устанавливаем текущую дату
 const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
 // --- Состояние приложения ---
 let state = {
+    month: now.getMonth(), // Текущий месяц для сброса
+    year: now.getFullYear(),
     income: 0,
+    spent: 0, // Потрачено (без учета целей, пока просто 0, так как мы не сделали траты)
     goals: []
 };
 
-// Загрузка из памяти телефона
 function loadState() {
     const saved = localStorage.getItem('fat_kopilka_state');
     if (saved) {
         state = JSON.parse(saved);
     }
-    updateUI();
+    
+    // Проверяем: не наступил ли новый месяц?
+    if (state.month !== now.getMonth() || state.year !== now.getFullYear()) {
+        state.month = now.getMonth();
+        state.year = now.getFullYear();
+        state.income = 0; // Обнуляем доход
+        state.spent = 0;  // Обнуляем траты
+        // Цели (state.goals) НЕ обнуляем! Они переносятся.
+        saveState();
+    } else {
+        updateUI();
+    }
 }
 
-// Сохранение в память телефона
 function saveState() {
     localStorage.setItem('fat_kopilka_state', JSON.stringify(state));
     updateUI();
@@ -33,8 +43,14 @@ function saveState() {
 
 // --- Обновление экрана ---
 function updateUI() {
-    // 1. Обновляем доход
+    // 1. Рассчитываем остаток
+    const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
+    // Остаток = Доход - Потрачено - Отложено в цели
+    const remainder = state.income - state.spent - totalSavedInGoals;
+
+    document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
+    document.getElementById('display-spent').textContent = formatMoney(state.spent);
 
     // 2. Отрисовываем цели
     const goalsList = document.getElementById('goals-list');
@@ -51,7 +67,10 @@ function updateUI() {
         const card = document.createElement('div');
         card.className = 'goal-card';
         card.innerHTML = `
-            <button class="delete-goal" onclick="deleteGoal(${goal.id})">×</button>
+            <div class="goal-actions">
+                <button class="edit-goal" onclick="editGoal(${goal.id})">✏️</button>
+                <button class="delete-goal" onclick="deleteGoal(${goal.id})">×</button>
+            </div>
             <div class="goal-title">${goal.title}</div>
             <div class="goal-sums">
                 <span>${formatMoney(goal.saved)} из ${formatMoney(goal.target)}</span>
@@ -70,7 +89,7 @@ function formatMoney(amount) {
     return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
 }
 
-// --- Навигация по экранам ---
+// --- Навигация ---
 const navItems = document.querySelectorAll('.nav-item');
 const screens = document.querySelectorAll('.screen');
 
@@ -78,38 +97,32 @@ navItems.forEach(item => {
     item.onclick = () => {
         navItems.forEach(n => n.classList.remove('active'));
         screens.forEach(s => s.classList.add('hidden'));
-        
         item.classList.add('active');
         const targetId = item.getAttribute('data-target');
         document.getElementById(targetId).classList.remove('hidden');
     };
 });
 
-// --- Модальное окно ---
+// --- Модалки ---
 const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
 const inputNumber = document.getElementById('modal-input-number');
 const btnCancel = document.getElementById('modal-cancel');
 const btnSave = document.getElementById('modal-save');
-
 let currentAction = null;
 
-function openModal(title, showText, showNumber, action) {
+function openModal(title, showText, showNumber, action, initialText = '', initialNumber = '') {
     modalTitle.textContent = title;
     inputText.classList.toggle('hidden', !showText);
     inputNumber.classList.toggle('hidden', !showNumber);
-    inputText.value = '';
-    inputNumber.value = '';
+    inputText.value = initialText;
+    inputNumber.value = initialNumber;
     currentAction = action;
     modalOverlay.classList.remove('hidden');
 }
 
-btnCancel.onclick = () => {
-    modalOverlay.classList.add('hidden');
-    currentAction = null;
-};
-
+btnCancel.onclick = () => { modalOverlay.classList.add('hidden'); currentAction = null; };
 btnSave.onclick = () => {
     if (currentAction) {
         const textVal = inputText.value.trim();
@@ -119,33 +132,23 @@ btnSave.onclick = () => {
     modalOverlay.classList.add('hidden');
 };
 
-// --- Кнопки на главной ---
+// --- Кнопки ---
 
-// 1. Добавление денег в копилку дохода
+// 1. Копилка дохода (добавить/вычесть)
 document.getElementById('add-income-btn').onclick = () => {
-    openModal('Сколько добавить в доход?', false, true, (text, num) => {
-        if (num > 0) {
-            state.income += num;
-            saveState();
-        }
+    openModal('Сумма (можно с минусом)', false, true, (text, num) => {
+        // num может быть отрицательным, чтобы вычесть при ошибке
+        state.income += num;
+        saveState();
     });
 };
 
-// 2. Добавление новой цели
+// 2. Добавление цели
 document.getElementById('add-goal-btn').onclick = () => {
-    if (state.goals.length >= 15) {
-        tg.showAlert('Максимум 15 целей!');
-        return;
-    }
+    if (state.goals.length >= 15) return tg.showAlert('Максимум 15 целей!');
     openModal('Новая цель', true, true, (text, num) => {
         if (!text) return;
-        const newGoal = {
-            id: Date.now(),
-            title: text,
-            target: num,
-            saved: 0
-        };
-        state.goals.push(newGoal);
+        state.goals.push({ id: Date.now(), title: text, target: num, saved: 0 });
         saveState();
     });
 };
@@ -158,7 +161,20 @@ window.deleteGoal = function(id) {
     }
 };
 
-// 4. Отложить деньги в цель
+// 4. Редактирование цели (карандаш)
+window.editGoal = function(id) {
+    const goal = state.goals.find(g => g.id === id);
+    if (!goal) return;
+    
+    openModal('Редактировать цель', true, true, (text, num) => {
+        if (!text) return;
+        goal.title = text;
+        goal.target = num;
+        saveState();
+    }, goal.title, goal.target);
+};
+
+// 5. Добавление денег В цель
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
@@ -175,15 +191,12 @@ window.addToGoal = function(id) {
             }
             saveState();
         }
-    });
+    }, '', remaining > 0 ? remaining : '');
 };
 
 // --- Запуск ---
 loadState();
 
-// Прячем заставку через 2 секунды
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        document.getElementById('splash-screen').classList.add('hidden');
-    }, 2000);
+    setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
 });
