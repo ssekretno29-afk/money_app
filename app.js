@@ -8,12 +8,12 @@ const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
-// --- Состояние приложения ---
+// --- Состояние ---
 let state = {
-    month: now.getMonth(), // Текущий месяц для сброса
+    month: now.getMonth(),
     year: now.getFullYear(),
     income: 0,
-    spent: 0, // Потрачено (без учета целей, пока просто 0, так как мы не сделали траты)
+    spent: 0,
     goals: []
 };
 
@@ -23,13 +23,12 @@ function loadState() {
         state = JSON.parse(saved);
     }
     
-    // Проверяем: не наступил ли новый месяц?
+    // Сброс раз в месяц
     if (state.month !== now.getMonth() || state.year !== now.getFullYear()) {
         state.month = now.getMonth();
         state.year = now.getFullYear();
-        state.income = 0; // Обнуляем доход
-        state.spent = 0;  // Обнуляем траты
-        // Цели (state.goals) НЕ обнуляем! Они переносятся.
+        state.income = 0; 
+        state.spent = 0;  
         saveState();
     } else {
         updateUI();
@@ -41,23 +40,23 @@ function saveState() {
     updateUI();
 }
 
-// --- Обновление экрана ---
+// --- Обновление UI ---
 function updateUI() {
-    // 1. Рассчитываем остаток
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
-    // Остаток = Доход - Потрачено - Отложено в цели
     const remainder = state.income - state.spent - totalSavedInGoals;
 
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
     document.getElementById('display-spent').textContent = formatMoney(state.spent);
 
-    // 2. Отрисовываем цели
+    // Рисуем цели
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
     
     state.goals.forEach(goal => {
-        const percent = goal.target > 0 ? Math.min((goal.saved / goal.target) * 100, 100) : 0;
+        // Защита от переполнения визуально
+        const actualSaved = Math.min(goal.saved, goal.target);
+        const percent = goal.target > 0 ? Math.min((actualSaved / goal.target) * 100, 100) : 0;
         const isCompleted = goal.saved >= goal.target;
         
         const actionButton = isCompleted 
@@ -73,7 +72,7 @@ function updateUI() {
             </div>
             <div class="goal-title">${goal.title}</div>
             <div class="goal-sums">
-                <span>${formatMoney(goal.saved)} из ${formatMoney(goal.target)}</span>
+                <span>${formatMoney(actualSaved)} из ${formatMoney(goal.target)}</span>
                 <span class="goal-percent">${Math.round(percent)}%</span>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div>
@@ -134,26 +133,37 @@ btnSave.onclick = () => {
 
 // --- Кнопки ---
 
-// 1. Копилка дохода (добавить/вычесть)
+// 1. Добавление дохода
 document.getElementById('add-income-btn').onclick = () => {
-    openModal('Сумма (можно с минусом)', false, true, (text, num) => {
-        // num может быть отрицательным, чтобы вычесть при ошибке
-        state.income += num;
-        saveState();
+    openModal('Сколько добавить?', false, true, (text, num) => {
+        if (num > 0) {
+            state.income += num;
+            saveState();
+        }
     });
 };
 
-// 2. Добавление цели
+// 1.1. Вычитание дохода (если ошиблись)
+document.getElementById('subtract-income-btn').onclick = () => {
+    openModal('Сколько вычесть?', false, true, (text, num) => {
+        if (num > 0) {
+            state.income -= num;
+            saveState();
+        }
+    });
+};
+
+// 2. Новая цель
 document.getElementById('add-goal-btn').onclick = () => {
     if (state.goals.length >= 15) return tg.showAlert('Максимум 15 целей!');
     openModal('Новая цель', true, true, (text, num) => {
-        if (!text) return;
+        if (!text || num <= 0) return;
         state.goals.push({ id: Date.now(), title: text, target: num, saved: 0 });
         saveState();
     });
 };
 
-// 3. Удаление цели
+// 3. Удалить цель
 window.deleteGoal = function(id) {
     if (confirm('Удалить эту цель?')) {
         state.goals = state.goals.filter(g => g.id !== id);
@@ -161,42 +171,43 @@ window.deleteGoal = function(id) {
     }
 };
 
-// 4. Редактирование цели (карандаш)
+// 4. Редактировать цель
 window.editGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
-    
     openModal('Редактировать цель', true, true, (text, num) => {
-        if (!text) return;
+        if (!text || num <= 0) return;
         goal.title = text;
         goal.target = num;
+        // Если новая цель меньше уже накопленного, корректируем накопленное
+        if (goal.saved > goal.target) goal.saved = goal.target;
         saveState();
     }, goal.title, goal.target);
 };
 
-// 5. Добавление денег В цель
+// 5. Отложить на цель (исправленный баг)
 window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
     
     const remaining = goal.target - goal.saved;
     
-    openModal('Сколько отложить на цель?', false, true, (text, num) => {
+    openModal('Сколько отложить?', false, true, (text, num) => {
         if (num > 0) {
+            // Если ввели больше, чем осталось, добавляем ровно столько, сколько нужно
             if (num > remaining) {
-                goal.saved += remaining;
-                tg.showAlert(`Отложено только ${formatMoney(remaining)}.`);
+                goal.saved = goal.target; // Ставим ровно цель
+                tg.showAlert(`Цель заполнена! Отложено ${formatMoney(remaining)}.`);
             } else {
                 goal.saved += num;
             }
-            saveState();
+            saveState(); // Сохраняем уже правильные данные
         }
-    }, '', remaining > 0 ? remaining : '');
+    });
 };
 
-// --- Запуск ---
+// Запуск
 loadState();
-
 window.addEventListener('load', () => {
     setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
 });
