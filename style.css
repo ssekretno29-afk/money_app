@@ -244,3 +244,9 @@ body.theme-dark .btn-subtract-money { background: rgba(0, 0, 0, 0.2); border-col
     font-weight: 800;
     color: var(--text-muted);
 }
+
+/* Идеальный круг, если категория одна (100%) */
+#donut-chart .full-circle {
+    fill: none;
+    stroke-width: 6;
+}
