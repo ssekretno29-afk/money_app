@@ -8,6 +8,17 @@ const now = new Date();
 const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 document.getElementById('current-date').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
+// Категории трат по умолчанию
+const DEFAULT_CATEGORIES = [
+    { id: 'housing', name: 'Жилье', icon: '🛒', sum: 0 },
+    { id: 'utilities', name: 'ЖКХ', icon: '🔌', sum: 0 },
+    { id: 'food', name: 'Продукты', icon: '🍔', sum: 0 },
+    { id: 'hobbies', name: 'Увлечения', icon: '🎮', sum: 0 },
+    { id: 'education', name: 'Обучение', icon: '📚', sum: 0 },
+    { id: 'credits', name: 'Кредиты', icon: '💳', sum: 0 },
+    { id: 'other', name: 'Прочее', icon: '📦', sum: 0 }
+];
+
 // --- Состояние ---
 let state = {
     month: now.getMonth(),
@@ -15,6 +26,7 @@ let state = {
     income: 0,
     spent: 0,
     goals: [],
+    categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
     currentPet: 'pet.gif',
     theme: 'theme-light',
     style: 'style-purple'
@@ -24,6 +36,10 @@ function loadState() {
     const saved = localStorage.getItem('fat_kopilka_state');
     if (saved) {
         state = JSON.parse(saved);
+        // На случай, если добавились новые категории в коде
+        if (!state.categories || state.categories.length === 0) {
+            state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        }
     }
     
     if (state.month !== now.getMonth() || state.year !== now.getFullYear()) {
@@ -31,6 +47,8 @@ function loadState() {
         state.year = now.getFullYear();
         state.income = 0; 
         state.spent = 0;  
+        // Категории обнуляем при смене месяца
+        state.categories.forEach(c => c.sum = 0);
         saveState();
     } else {
         updateUI();
@@ -44,36 +62,31 @@ function saveState() {
 
 // --- Обновление UI ---
 function updateUI() {
-    // 1. Применяем тему и стиль (классы на body)
     document.body.className = `${state.theme} ${state.style}`;
 
-    // 2. Обновляем цифры
     const totalSavedInGoals = state.goals.reduce((sum, goal) => sum + goal.saved, 0);
-    const remainder = state.income - state.spent - totalSavedInGoals;
+    
+    // Считаем сколько всего потрачено
+    const totalSpentInCategories = state.categories.reduce((sum, cat) => sum + cat.sum, 0);
+
+    // Остаток = Доход - Общие траты - Отложено в цели
+    const remainder = state.income - totalSpentInCategories - totalSavedInGoals;
 
     document.getElementById('display-remainder').textContent = formatMoney(remainder);
     document.getElementById('display-income').textContent = formatMoney(state.income);
-    document.getElementById('display-spent').textContent = formatMoney(state.spent);
+    document.getElementById('display-spent').textContent = formatMoney(totalSpentInCategories); // Показываем общую сумму трат
 
-    // 3. Меняем картинку питомца
     const petImg = document.getElementById('main-pet-img');
-    if (petImg.src !== state.currentPet) {
-        petImg.src = state.currentPet;
-    }
+    if (petImg.src !== state.currentPet) petImg.src = state.currentPet;
 
-    // 4. Рисуем цели
+    // Рисуем Цели
     const goalsList = document.getElementById('goals-list');
     goalsList.innerHTML = '';
-    
     state.goals.forEach(goal => {
         const actualSaved = Math.min(goal.saved, goal.target);
         const percent = goal.target > 0 ? Math.min((actualSaved / goal.target) * 100, 100) : 0;
         const isCompleted = goal.saved >= goal.target;
-        
-        const actionButton = isCompleted 
-            ? `<div class="goal-completed">Цель достигнута! 🎉</div>`
-            : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
-
+        const actionButton = isCompleted ? `<div class="goal-completed">Цель достигнута! 🎉</div>` : `<button class="goal-btn-add" onclick="addToGoal(${goal.id})">+ Добавить</button>`;
         const remainingToGoal = goal.target - actualSaved;
         const remainingText = isCompleted ? '' : `<div class="goal-remaining">Осталось собрать: ${formatMoney(remainingToGoal)}</div>`;
 
@@ -95,19 +108,29 @@ function updateUI() {
         `;
         goalsList.appendChild(card);
     });
-
     document.getElementById('goals-count').textContent = `${state.goals.length}/15`;
 
-    // 5. Подсвечиваем активные кнопки в модалках
-    document.querySelectorAll('.pet-select-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-pet') === state.currentPet);
+    // Рисуем Категории Трат
+    const catList = document.getElementById('categories-list');
+    catList.innerHTML = '';
+    state.categories.forEach(cat => {
+        const div = document.createElement('div');
+        div.className = 'category-card';
+        div.innerHTML = `
+            <div class="cat-icon-box">${cat.icon}</div>
+            <div class="cat-info-box">
+                <div class="cat-title">${cat.name}</div>
+                <div class="cat-sum">${formatMoney(cat.sum)}</div>
+            </div>
+            <button class="cat-add-btn" onclick="addExpense('${cat.id}')">+</button>
+        `;
+        catList.appendChild(div);
     });
-    document.querySelectorAll('.theme-select-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-theme') === state.theme);
-    });
-    document.querySelectorAll('.style-select-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-style') === state.style);
-    });
+
+    // Подсветка кнопок в настройках
+    document.querySelectorAll('.pet-select-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-pet') === state.currentPet));
+    document.querySelectorAll('.theme-select-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-theme') === state.theme));
+    document.querySelectorAll('.style-select-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-style') === state.style));
 }
 
 function formatMoney(amount) {
@@ -128,7 +151,7 @@ navItems.forEach(item => {
     };
 });
 
-// --- Базовые модалки (Ввод данных) ---
+// --- Модалки ---
 const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const inputText = document.getElementById('modal-input-text');
@@ -157,7 +180,20 @@ btnSave.onclick = () => {
     modalOverlay.classList.add('hidden');
 };
 
-// --- Кнопки доходов и целей ---
+// --- Логика Трат ---
+window.addExpense = function(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    openModal(`Траты на "${cat.name}"`, false, true, (text, num) => {
+        if (num > 0) {
+            cat.sum += num;
+            saveState();
+        }
+    });
+};
+
+// --- Остальные кнопки ---
 document.getElementById('add-income-btn').onclick = () => {
     openModal('Сколько добавить?', false, true, (text, num) => {
         if (num > 0) { state.income += num; saveState(); }
@@ -202,7 +238,6 @@ window.addToGoal = function(id) {
     const goal = state.goals.find(g => g.id === id);
     if (!goal) return;
     const remaining = goal.target - goal.saved;
-    
     openModal('Сколько отложить?', false, true, (text, num) => {
         if (num > 0) {
             if (num > remaining) {
@@ -217,40 +252,25 @@ window.addToGoal = function(id) {
 };
 
 // --- Модалки настроек ---
-// 1. Питомцы
 const petModalOverlay = document.getElementById('pet-modal-overlay');
 document.getElementById('open-pet-selector').onclick = () => petModalOverlay.classList.remove('hidden');
 document.getElementById('pet-modal-close').onclick = () => petModalOverlay.classList.add('hidden');
 document.querySelectorAll('.pet-select-btn').forEach(btn => {
-    btn.onclick = () => {
-        state.currentPet = btn.getAttribute('data-pet');
-        saveState();
-        petModalOverlay.classList.add('hidden');
-    };
+    btn.onclick = () => { state.currentPet = btn.getAttribute('data-pet'); saveState(); petModalOverlay.classList.add('hidden'); };
 });
 
-// 2. Темы
 const themeModalOverlay = document.getElementById('theme-modal-overlay');
 document.getElementById('open-theme-selector').onclick = () => themeModalOverlay.classList.remove('hidden');
 document.getElementById('theme-modal-close').onclick = () => themeModalOverlay.classList.add('hidden');
 document.querySelectorAll('.theme-select-btn').forEach(btn => {
-    btn.onclick = () => {
-        state.theme = btn.getAttribute('data-theme');
-        saveState();
-        themeModalOverlay.classList.add('hidden');
-    };
+    btn.onclick = () => { state.theme = btn.getAttribute('data-theme'); saveState(); themeModalOverlay.classList.add('hidden'); };
 });
 
-// 3. Стили
 const styleModalOverlay = document.getElementById('style-modal-overlay');
 document.getElementById('open-style-selector').onclick = () => styleModalOverlay.classList.remove('hidden');
 document.getElementById('style-modal-close').onclick = () => styleModalOverlay.classList.add('hidden');
 document.querySelectorAll('.style-select-btn').forEach(btn => {
-    btn.onclick = () => {
-        state.style = btn.getAttribute('data-style');
-        saveState();
-        styleModalOverlay.classList.add('hidden');
-    };
+    btn.onclick = () => { state.style = btn.getAttribute('data-style'); saveState(); styleModalOverlay.classList.add('hidden'); };
 });
 
 // Запуск
